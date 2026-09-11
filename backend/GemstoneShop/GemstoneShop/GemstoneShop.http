@@ -1,0 +1,6 @@
+@GemstoneShop_HostAddress = http://localhost:5032
+
+GET {{GemstoneShop_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
