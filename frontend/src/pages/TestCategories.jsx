@@ -16,7 +16,7 @@ function TestCategories() {
 
     return (
         <div>
-            <h1>Categories</h1>
+            <h1>Danh mục</h1>
 
             {categories.map((category) => (
                 <div key={category.id}>
