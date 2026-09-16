@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 48" role="img" aria-label="Gem Aurelia">
+  <path d="M27 4 48 17 40 43H14L5 17z" fill="#0b5f4d"/>
+  <path d="M27 4 26 43 48 17z" fill="#d8b56d" opacity=".65"/>
+  <path d="M5 17h43M14 43 27 4l13 39M5 17l21 26" fill="none" stroke="#fff6d8" stroke-width="1.6"/>
+  <text x="62" y="29" fill="#14110c" font-family="Georgia, serif" font-size="20" letter-spacing=".8">Gem Aurelia</text>
+</svg>
