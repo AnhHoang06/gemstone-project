@@ -33,6 +33,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles(); // phục vụ ảnh trong wwwroot/uploads/... qua URL /uploads/...
+
 app.UseCors("FrontendPolicy");
 
 app.UseAuthorization();
