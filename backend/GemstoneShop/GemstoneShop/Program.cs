@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 using GemstoneShop.Services;
 using Microsoft.OpenApi.Models;
 
@@ -78,6 +79,25 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwt["Key"]!)
             )
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                if (!int.TryParse(context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                {
+                    context.Fail("Invalid user identifier.");
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<GemstoneShopContext>();
+                var isActive = await db.Users.AnyAsync(
+                    user => user.Id == userId && user.IsActive,
+                    context.HttpContext.RequestAborted);
+
+                if (!isActive)
+                    context.Fail("Account is missing or inactive.");
+            }
         };
     });
 

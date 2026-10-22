@@ -55,7 +55,7 @@ export default function AdminCustomers() {
   return <main className="admin-page">
     <h1>Quản lý tài khoản khách hàng</h1>
     <p>Danh sách bao gồm Admin và Customer. Vai trò chỉ để xem.</p>
-    <p>Khóa tài khoản chặn đăng nhập mới; phiên đăng nhập hiện tại còn hiệu lực đến khi hết hạn.</p>
+    <p>Khóa tài khoản chặn đăng nhập mới và từ chối phiên hiện tại ở yêu cầu API tiếp theo.</p>
     {error && <p className="admin-error" role="alert">{error}</p>}
     {loading ? <p role="status">Đang tải...</p> : !loaded ?
       <button type="button" onClick={retry}>Thử lại</button> : users.length === 0 ?
