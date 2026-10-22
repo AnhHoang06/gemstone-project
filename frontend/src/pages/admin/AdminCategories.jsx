@@ -21,7 +21,10 @@ function AdminCategories() {
     }
 
     useEffect(() => {
-        loadCategories();
+        api.get("/categories")
+            .then((res) => setCategories(res.data))
+            .catch((err) => console.error(err))
+            .finally(() => setLoading(false));
     }, []);
 
     function handleChange(e) {

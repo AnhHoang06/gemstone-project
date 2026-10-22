@@ -36,8 +36,10 @@ function ProductListApi() {
     };
 
     useEffect(() => {
-        fetchProducts({});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        api.get("/products", { params: {} })
+            .then((res) => setProducts(res.data))
+            .catch((err) => console.error(err))
+            .finally(() => setLoading(false));
     }, []);
 
     const handleSubmit = (e) => {

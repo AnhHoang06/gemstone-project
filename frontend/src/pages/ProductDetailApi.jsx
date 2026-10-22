@@ -5,15 +5,16 @@ import "../styles/products.css";
 
 function ProductDetailApi() {
     const { id } = useParams();
+    return <ProductDetailContent key={id} id={id} />;
+}
+
+function ProductDetailContent({ id }) {
     const [product, setProduct] = useState(null);
     const [activeImage, setActiveImage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
-        setLoading(true);
-        setNotFound(false);
-
         api.get(`/products/${id}`)
             .then((res) => {
                 setProduct(res.data);
