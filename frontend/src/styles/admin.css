@@ -1,0 +1,266 @@
+/* ============================================================
+   Design tokens — dùng lại đúng tông với products.css
+   (khai báo lại ở đây để trang admin tự chạy được, không phụ
+   thuộc việc products.css đã load hay chưa)
+   ============================================================ */
+.admin-delete-dialog {
+    width: min(480px, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    overflow-y: auto;
+    color: var(--gs-ink, #221d17);
+    background: var(--gs-bg, #faf7f1);
+    border: 1px solid var(--gs-line, #e4dcc9);
+    border-top: 3px solid var(--gs-gold, #a9812f);
+    border-radius: 2px;
+    box-shadow: 0 16px 48px #221d1726;
+}
+.admin-delete-dialog::backdrop { background: rgb(25 34 28 / 48%); }
+.admin-page .admin-delete-dialog h2 { margin: 0 0 1rem; font-size: 1.5rem; color: var(--gs-ink); }
+.admin-delete-dialog p { line-height: 1.65; overflow-wrap: anywhere; }
+.admin-delete-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+@media (max-width: 420px) { .admin-delete-actions > button { flex: 1 1 auto; } }
+:root {
+    --gs-bg: #faf7f1;
+    --gs-ink: #221d17;
+    --gs-ink-soft: #4b3620;
+    --gs-gold: #a9812f;
+    --gs-gold-soft: #d9c69433;
+    --gs-line: #e4dcc9;
+    --gs-danger: #8a2e2e;
+    --gs-success: #2f6b4f;
+
+    --gs-font-display: "Playfair Display", Georgia, serif;
+    --gs-font-body: "Inter", -apple-system, sans-serif;
+}
+
+.admin-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    font-family: var(--gs-font-body);
+    color: var(--gs-ink);
+    background: var(--gs-bg);
+}
+
+.admin-page h1 {
+    font-family: var(--gs-font-display);
+    font-size: 2rem;
+    margin: 0 0 1.5rem;
+}
+
+.admin-page h2 {
+    font-family: var(--gs-font-display);
+    font-size: 1.25rem;
+    margin: 2rem 0 1rem;
+    color: var(--gs-ink-soft);
+}
+
+/* ---------- Form thêm/sửa ---------- */
+.admin-form {
+    background: #fff;
+    border: 1px solid var(--gs-line);
+    border-radius: 4px;
+    padding: 1.5rem;
+}
+
+.admin-form h2 {
+    margin-top: 0;
+}
+
+.admin-error {
+    background: #fbeaea;
+    color: var(--gs-danger);
+    border: 1px solid #e6bcbc;
+    border-radius: 3px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.admin-page .form-row {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.admin-page .form-row label {
+    font-size: 0.85rem;
+    color: var(--gs-ink-soft);
+}
+
+.admin-page .form-row input[type="text"],
+.admin-page .form-row input[type="number"],
+.admin-page .form-row textarea,
+.admin-page .form-row select {
+    border: 1px solid var(--gs-line);
+    border-radius: 3px;
+    padding: 0.55rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.admin-page .form-row input:focus,
+.admin-page .form-row textarea:focus,
+.admin-page .form-row select:focus {
+    outline: none;
+    border-color: var(--gs-gold);
+}
+
+.admin-page .form-row-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--gs-ink);
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* ---------- Buttons ---------- */
+.admin-page .btn {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 0.55rem 1.25rem;
+    font-size: 0.9rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.admin-page .btn-primary {
+    background: var(--gs-gold);
+    color: #fff;
+}
+.admin-page .btn-primary:hover { opacity: 0.9; }
+
+.admin-page .btn-outline {
+    background: transparent;
+    border-color: var(--gs-ink-soft);
+    color: var(--gs-ink-soft);
+}
+.admin-page .btn-outline:hover { background: var(--gs-gold-soft); }
+
+.admin-page .btn-danger {
+    background: var(--gs-danger);
+    color: #fff;
+}
+.admin-page .btn-danger:hover { opacity: 0.9; }
+
+.admin-page .btn-sm {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+}
+
+/* ---------- Bảng ---------- */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid var(--gs-line);
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--gs-line);
+    text-align: left;
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.admin-table th {
+    background: var(--gs-gold-soft);
+    color: var(--gs-ink-soft);
+    font-weight: 600;
+}
+
+.admin-table-actions {
+    display: flex;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.admin-table-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid var(--gs-line);
+    background: var(--gs-bg);
+}
+
+/* ---------- Badge trạng thái ---------- */
+.admin-page .badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+.admin-page .badge-active { background: #e3f1e9; color: var(--gs-success); }
+.admin-page .badge-inactive { background: #f2e6e6; color: var(--gs-danger); }
+
+/* ---------- Upload ảnh (trang thêm/sửa sản phẩm) ---------- */
+.admin-image-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.admin-image-item {
+    position: relative;
+    width: 92px;
+}
+
+.admin-image-item img {
+    width: 92px;
+    height: 92px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 2px solid var(--gs-line);
+}
+
+.admin-image-item.is-primary img {
+    border-color: var(--gs-gold);
+}
+
+.admin-image-item .image-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+}
+
+.admin-image-item .image-actions button {
+    background: none;
+    border: none;
+    color: var(--gs-ink-soft);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.7rem;
+    text-decoration: underline;
+}
+
+.admin-image-item .primary-tag {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: var(--gs-gold);
+    color: #fff;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 2px;
+}

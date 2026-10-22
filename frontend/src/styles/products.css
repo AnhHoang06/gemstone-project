@@ -1,0 +1,285 @@
+/* ============================================================
+   Design tokens — GemstoneShop / Product catalog
+   Tông: ngà ấm + vàng đồng cổ điển, gợi cảm giác trang sức/đá quý
+   thật, tránh phong cách "SaaS card" bo tròn + shadow mặc định.
+   ============================================================ */
+
+:root {
+    --gs-bg: #faf7f1;
+    --gs-ink: #221d17;
+    --gs-ink-soft: #4b3620;
+    --gs-gold: #a9812f;
+    --gs-gold-soft: #d9c69433;
+    --gs-line: #e4dcc9;
+    --gs-danger: #8a2e2e;
+
+    --gs-font-display: "Playfair Display", Georgia, serif;
+    --gs-font-body: "Inter", -apple-system, sans-serif;
+}
+
+.gs-page {
+    background: var(--gs-bg);
+    color: var(--gs-ink);
+    font-family: var(--gs-font-body);
+    min-height: 100vh;
+    padding-bottom: 4rem;
+}
+
+/* ---------- Header chung của trang ---------- */
+.gs-header {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--gs-line);
+}
+
+.gs-header h1 {
+    font-family: var(--gs-font-display);
+    font-weight: 600;
+    font-size: 2.25rem;
+    margin: 0 0 0.25rem;
+}
+
+.gs-header p {
+    color: var(--gs-ink-soft);
+    margin: 0;
+}
+
+/* ---------- Thanh search / filter ---------- */
+.gs-filters {
+    max-width: 1120px;
+    margin: 2rem auto 0;
+    padding: 0 1.5rem;
+}
+
+.gs-filters .form-control,
+.gs-filters .form-select {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gs-line);
+    border-radius: 0;
+    padding: 0.5rem 0.25rem;
+    font-family: var(--gs-font-body);
+    color: var(--gs-ink);
+}
+
+.gs-filters .form-control:focus,
+.gs-filters .form-select:focus {
+    box-shadow: none;
+    border-bottom-color: var(--gs-gold);
+}
+
+.gs-filters .form-control::placeholder {
+    color: #9c9082;
+}
+
+.gs-btn-gold {
+    background: var(--gs-ink);
+    color: var(--gs-bg);
+    border: none;
+    padding: 0.55rem 1.25rem;
+    font-family: var(--gs-font-body);
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition: background 0.15s ease;
+}
+
+.gs-btn-gold:hover {
+    background: var(--gs-gold);
+    color: var(--gs-ink);
+}
+
+.gs-link-reset {
+    color: var(--gs-ink-soft);
+    text-decoration: underline;
+    font-size: 0.85rem;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* ---------- Lưới sản phẩm ---------- */
+.gs-grid {
+    max-width: 1120px;
+    margin: 2.5rem auto 0;
+    padding: 0 1.5rem;
+}
+
+.gs-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+}
+
+.gs-card-image {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: var(--gs-gold-soft);
+}
+
+.gs-card-image-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background: var(--gs-gold-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gs-ink-soft);
+    font-size: 0.85rem;
+}
+
+.gs-card-body {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--gs-line);
+    margin-top: 0.9rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.gs-card-category {
+    font-size: 0.78rem;
+    color: var(--gs-ink-soft);
+    margin-bottom: 0.15rem;
+}
+
+.gs-card-name {
+    font-family: var(--gs-font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: var(--gs-ink);
+}
+
+.gs-card-price {
+    font-family: var(--gs-font-display);
+    color: var(--gs-gold);
+    font-size: 1.05rem;
+    margin-top: auto;
+}
+
+/* ---------- Trang chi tiết sản phẩm ---------- */
+.gs-detail {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 0;
+}
+
+.gs-back-link {
+    display: inline-block;
+    color: var(--gs-ink-soft);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.gs-back-link:hover {
+    color: var(--gs-ink);
+}
+
+.gs-detail-main-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: var(--gs-gold-soft);
+}
+
+.gs-thumb-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.gs-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid var(--gs-line);
+    opacity: 0.75;
+}
+
+.gs-thumb.active {
+    border-color: var(--gs-gold);
+    opacity: 1;
+}
+
+.gs-detail-category {
+    color: var(--gs-ink-soft);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.gs-detail-name {
+    font-family: var(--gs-font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.gs-detail-price {
+    font-family: var(--gs-font-display);
+    color: var(--gs-gold);
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.gs-detail-desc {
+    color: var(--gs-ink-soft);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.gs-spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    margin-bottom: 1.5rem;
+}
+
+.gs-spec-table tr {
+    border-bottom: 1px solid var(--gs-line);
+}
+
+.gs-spec-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--gs-ink-soft);
+    padding: 0.55rem 0;
+    width: 45%;
+}
+
+.gs-spec-table td {
+    padding: 0.55rem 0;
+}
+
+.gs-cert-box {
+    border: 1px solid var(--gs-line);
+    padding: 1.1rem;
+}
+
+.gs-cert-box h6 {
+    font-family: var(--gs-font-display);
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+}
+
+.gs-cert-box p {
+    margin-bottom: 0.3rem;
+    font-size: 0.92rem;
+    color: var(--gs-ink-soft);
+}
+
+.gs-cert-box a {
+    color: var(--gs-gold);
+}
+
+.gs-empty-state {
+    color: var(--gs-ink-soft);
+    padding: 3rem 0;
+    text-align: center;
+}

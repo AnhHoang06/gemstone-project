@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import useApiData from "../hooks/useApiData";
 
 function Footer() {
+  const { data: categories, loading, error } = useApiData("/categories");
   return (
     <footer className="luxury-footer">
       <div className="container">
@@ -14,10 +16,10 @@ function Footer() {
           </div>
           <div className="col-sm-6 col-lg-3">
             <h3>Bộ sưu tập</h3>
-            <Link to="/shop?category=ruby">Ruby</Link>
-            <Link to="/shop?category=sapphire">Sapphire</Link>
-            <Link to="/shop?category=emerald">Emerald</Link>
-            <Link to="/shop?category=diamond">Diamond</Link>
+            {loading && <p>Đang tải danh mục...</p>}
+            {error && <p role="alert">{error}</p>}
+            {categories?.map((category) => <Link key={category.id} to={`/shop?category=${encodeURIComponent(category.name.toLowerCase())}`}>{category.name}</Link>)}
+            {categories?.length === 0 && <p>Chưa có danh mục.</p>}
           </div>
           <div className="col-sm-6 col-lg-4">
             <h3>Chăm sóc khách hàng</h3>

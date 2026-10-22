@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using GemstoneShop.Models;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +38,7 @@ public partial class GemstoneShopContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Server=.\\SQLEXPRESS;Database=GemstoneShop;Trusted_Connection=True;TrustServerCertificate=True;");
+    // Connection configured by AddDbContext. Scaffold with -NoOnConfiguring.
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

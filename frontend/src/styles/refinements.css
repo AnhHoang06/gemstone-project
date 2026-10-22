@@ -1,0 +1,125 @@
+/* Shared presentation, layered after the existing storefront and Bootstrap. */
+.auth-panel input[aria-invalid="true"], .profile-form input[aria-invalid="true"] {
+  border-color: #b77a6c;
+  background-color: #fffaf8;
+}
+.auth-panel .field-error, .profile-form .field-error {
+  color: #823a2e;
+  font-size: .8rem;
+  line-height: 1.5;
+  margin: .4rem 0 0;
+}
+:root { --ui-paper: #fcfaf6; --ui-border: #e3dccf; --ui-ink: #262b26; --ui-muted: #696b62; --ui-green: #234d40; }
+body { color: var(--ui-ink); background: var(--ui-paper); }
+button:disabled { cursor: not-allowed; opacity: .55; }
+:where(a, button, input, select, textarea):focus-visible { outline: 2px solid #947333; outline-offset: 3px; }
+.luxury-navbar { box-shadow: none; padding-block: 1rem; }
+.luxury-navbar .nav-link { font-size: .8rem; text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 0; }
+.luxury-topbar { background: #23382f; font-size: .73rem; }
+.nav-account { display: flex; align-items: center; gap: .8rem; border-left: 1px solid var(--ui-border); padding-left: 1rem; margin-left: 1rem; }
+.nav-register, .secondary-action, .logout-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: .55rem .85rem; border: 1px solid var(--ui-border); background: transparent; color: var(--ui-ink); font-size: .85rem; text-decoration: none; border-radius: 2px; }
+.logout-button:hover, .secondary-action:hover, .nav-register:hover { background: #eee9df; color: var(--ui-ink); }
+.auth-page { padding: clamp(2rem, 6vw, 5rem) 1rem; }
+.auth-panel { max-width: 520px; margin: auto; padding: clamp(1.4rem, 4vw, 3rem); background: #fff; border: 1px solid var(--ui-border); box-shadow: 0 8px 30px #29201505; }
+.auth-panel h1, .account-panel h2, .admin-page h1, .gs-detail-name { font-family: "Playfair Display", Georgia, serif; font-weight: 500; }
+.auth-panel h1 { font-size: clamp(1.8rem, 4vw, 2.25rem); margin-bottom: .8rem; }
+.eyebrow { text-transform: uppercase; font-size: .67rem; letter-spacing: .16em; color: #7b653b; margin-bottom: 1.3rem; }
+.form-intro, .auth-switch { color: var(--ui-muted); font-size: .9rem; line-height: 1.7; }
+.form-intro { margin-bottom: 1.8rem; }
+.auth-switch { margin: 1.5rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--ui-border); }
+.auth-switch a, .notice a { color: var(--ui-green); text-underline-offset: 4px; }
+.auth-panel form > div, .auth-panel fieldset > div, .profile-form fieldset > div { margin-bottom: 1.15rem; }
+.auth-panel label, .profile-form label { display: block; font-size: .86rem; font-weight: 500; margin-bottom: .45rem; }
+.auth-panel input, .profile-form input, .admin-page .form-row :is(input:not([type="checkbox"]), textarea, select) {
+  display: block; width: 100%; min-height: 44px; padding: .65rem .8rem; border: 1px solid #cecfc6; border-radius: 2px; background: #fff; color: var(--ui-ink); font-size: .95rem;
+}
+.auth-panel label input { margin-top: .45rem; }
+.auth-panel fieldset, .profile-form fieldset { min-width: 0; }
+.auth-panel button[type="submit"], .profile-form button[type="submit"] { background: var(--ui-green); color: #fff; border: 1px solid var(--ui-green); border-radius: 2px; padding: .8rem 1.3rem; min-height: 46px; font-weight: 500; }
+.auth-panel button[type="submit"] { width: 100%; margin-top: .25rem; }
+.auth-panel button[type="submit"]:hover:not(:disabled), .profile-form button[type="submit"]:hover:not(:disabled) { background: #17392e; }
+.notice { border: 1px solid var(--ui-border); border-left-width: 3px; padding: .9rem 1rem; font-size: .9rem; line-height: 1.6; background: #f6f4ef; }
+.notice-error, .admin-error { background: #fcf2ef; border-color: #d3a69a; color: #823a2e; }
+.notice-success { background: #eff6f0; border-color: #a1baa7; color: #285239; }
+.account-section { padding: 2.5rem 0 4rem; }
+.account-section .account-grid { grid-template-columns: minmax(0, 1.6fr) minmax(230px, 1fr); align-items: start; gap: 2rem; }
+.account-panel { padding: clamp(1.25rem, 3vw, 2.25rem); border: 1px solid var(--ui-border); background: #fff; box-shadow: none; }
+.account-panel h2 { margin-bottom: 1.5rem; }
+.profile-form input:disabled { background: #f1f0eb; color: #62655e; opacity: 1; }
+.readonly-label { float: right; color: var(--ui-muted); font-size: .7rem; font-weight: 400; }
+.account-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
+.admin-shell { min-height: 100vh; background: var(--ui-paper); }
+.admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem max(1rem, calc((100% - 1120px)/2)); background: #fff; border-bottom: 1px solid var(--ui-border); }
+.admin-brand { font: 1.4rem "Playfair Display", Georgia, serif; text-decoration: none; color: var(--ui-ink); }
+.admin-brand span { display: block; font: .65rem system-ui, sans-serif; letter-spacing: .15em; text-transform: uppercase; color: var(--ui-muted); margin-top: .4rem; }
+.admin-account { display: flex; align-items: center; gap: 1rem; font-size: .85rem; }
+.admin-account a { color: var(--ui-ink); text-underline-offset: 4px; }
+.admin-nav { display: flex; gap: 1.75rem; overflow-x: auto; padding: 0 max(1rem, calc((100% - 1120px)/2)); border-bottom: 1px solid var(--ui-border); background: #fff; }
+.admin-nav a { padding: 1rem 0; white-space: nowrap; font-size: .9rem; color: var(--ui-muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.admin-nav a.active { border-color: var(--ui-green); color: var(--ui-green); }
+.admin-page { max-width: 1168px; background: transparent; padding: 2.5rem 1.5rem 4rem; }
+.admin-page-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.admin-page-heading h1 { margin: 0; }
+.admin-page > p { color: var(--ui-muted); max-width: 75ch; line-height: 1.7; font-size: .9rem; }
+.admin-page .admin-form { max-width: 860px; border-radius: 2px; padding: clamp(1rem, 3vw, 2rem); }
+.admin-page .form-row { display: flex; flex-direction: column; gap: .45rem; margin-bottom: 1.2rem; }
+.admin-page .form-row-checkbox input { accent-color: var(--ui-green); }
+.admin-page .btn { border-radius: 2px; min-height: 38px; font-weight: 500; }
+.admin-page .btn-primary { background: var(--ui-green); border-color: var(--ui-green); }
+.admin-page .btn-danger { background: #fff; color: #873f32; border-color: #d8b7af; }
+.admin-page .btn-danger:hover { background: #fcf0ec; }
+.table-scroll { overflow-x: auto; margin-block: 1.5rem; border: 1px solid var(--ui-border); background: #fff; }
+.admin-table { border: 0; margin: 0; min-width: 640px; }
+.admin-table th { background: #f3f1eb; font-size: .75rem; letter-spacing: .02em; font-weight: 600; }
+.admin-table td, .admin-table th { padding: 1rem; border-color: var(--ui-border); }
+.admin-table tbody tr:hover { background: #faf9f5; }
+.admin-table td { max-width: 320px; overflow-wrap: anywhere; }
+.admin-table-actions { display: table-cell; }
+.admin-table-actions > * { margin: .15rem .4rem .15rem 0; }
+.admin-page .badge { border-radius: 2px; padding: .4rem .6rem; font-size: .73rem; font-weight: 500; white-space: nowrap; }
+.empty-state, .gs-empty-state { padding: 3rem 1.5rem; border: 1px dashed var(--ui-border); text-align: center; background: #fff; }
+.gs-page { background: var(--ui-paper); }
+.gs-header { padding-block: 3.5rem 2rem; }
+.gs-header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+.gs-filters label { font-size: .78rem; color: var(--ui-muted); margin-bottom: .4rem; }
+.gs-filters .form-control, .gs-filters .form-select { border: 1px solid var(--ui-border); background: #fff; padding: .65rem; min-height: 44px; border-radius: 2px; }
+.gs-btn-gold { min-height: 44px; padding-inline: .8rem; background: var(--ui-green); }
+.gs-card { border: 1px solid var(--ui-border); background: #fff; padding: .65rem; transition: box-shadow .2s; }
+.gs-card:hover { color: inherit; box-shadow: 0 6px 20px #2920150d; }
+.gs-card .gs-card-body { padding: 1rem .5rem .5rem; margin-top: 0; border-top: 0; }
+.gs-card-category, .gs-detail-category { text-transform: uppercase; font-size: .7rem; letter-spacing: .12em; color: #76613b; }
+.gs-card-meta { font-size: .8rem; color: var(--ui-muted); min-height: 1.2em; }
+.gs-card-price, .gs-detail-price { color: var(--ui-green); }
+.gs-detail-name { font-size: clamp(1.9rem, 3vw, 2.65rem); line-height: 1.25; }
+.gs-detail-main-image { border: 1px solid var(--ui-border); }
+.gs-section-title { font: 1.1rem "Playfair Display", Georgia, serif; margin: 1.5rem 0 .8rem; }
+.gs-spec-table th { font-weight: 400; font-size: .85rem; }
+.gs-spec-table td { font-weight: 500; }
+.gs-cert-box { background: #fff; border-color: var(--ui-border); border-left: 3px solid #a68b54; }
+.gs-cert-box .gs-section-title { margin-top: 0; }
+.gs-thumbnail-button { padding: 0; border: 0; background: transparent; }
+.gs-thumbnail-button[aria-pressed="true"] { outline: 2px solid #a68b54; outline-offset: 2px; }
+.gs-thumb { display: block; }
+.page-title { background: #f3efe6; border-bottom: 1px solid var(--ui-border); }
+.product-card { border: 1px solid var(--ui-border); box-shadow: none; }
+.product-card:hover { box-shadow: 0 6px 20px #2920150d; }
+@media (max-width: 1199px) { .luxury-navbar .container { flex-wrap: wrap; } .luxury-navbar .nav-link { font-size: .74rem; } .nav-account { gap: .5rem; padding-left: .5rem; margin-left: .5rem; } }
+@media (max-width: 991px) {
+  .luxury-navbar .navbar-nav { align-items: stretch !important; padding-top: 1rem; }
+  .luxury-navbar .nav-link { padding-block: .7rem; font-size: .9rem; }
+  .nav-account { flex-wrap: wrap; border-left: 0; border-top: 1px solid var(--ui-border); margin: .5rem 0 0; padding: .75rem 0 0; gap: 1rem; }
+  .luxury-topbar .container-fluid span:last-child { display: none; }
+}
+@media (max-width: 640px) {
+  .account-section .account-grid { grid-template-columns: 1fr; }
+  .admin-page { padding: 1.75rem 1rem 3rem; }
+  .admin-page .form-grid-2 { grid-template-columns: 1fr; gap: 0; }
+  .admin-header { align-items: flex-start; }
+  .admin-account { flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+  .admin-nav { gap: 1.3rem; }
+  .admin-page h1 { font-size: 1.7rem; }
+  .gs-detail { padding-inline: 1rem; }
+  .gs-filters { margin-top: 1rem; }
+  .auth-page { padding-block: 1.5rem 3rem; }
+}
+@media (prefers-reduced-motion: reduce) { .gs-card, .btn { transition: none; } }

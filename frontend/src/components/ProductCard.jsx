@@ -1,11 +1,7 @@
 import { Link } from "react-router-dom";
 
-const formatPrice = (price) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(price);
+import { formatPrice } from "../utils/formatPrice";
+import { resolveImageUrl } from "../api/api";
 
 function ProductCard({ product }) {
   return (
@@ -16,12 +12,12 @@ function ProductCard({ product }) {
         style={{ "--gem-color": product.accent }}
         aria-label={`Xem chi tiết ${product.name}`}
       >
-        <span className="gem-facet" />
+        {product.imageUrl ? <img src={resolveImageUrl(product.imageUrl)} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "contain", position: "relative", zIndex: 1 }} /> : product.accent ? <span className="gem-facet" /> : <span>Chưa có ảnh</span>}
       </Link>
       <div className="product-card__body">
         <div className="product-card__meta">
           <span>{product.type}</span>
-          <span>{product.carat} ct</span>
+          <span>{product.carat == null ? "Chưa có carat" : product.carat + " ct"}</span>
         </div>
         <h3>
           <Link to={`/product/${product.id}`}>{product.name}</Link>
@@ -46,5 +42,5 @@ function ProductCard({ product }) {
   );
 }
 
-export { formatPrice };
+
 export default ProductCard;

@@ -1,5 +1,6 @@
 import { NavLink, Link } from "react-router-dom";
 import logo from "../assets/logo-mark.svg";
+import LogoutButton from "./LogoutButton";
 
 const navItems = [
   { to: "/", label: "Trang chủ" },
@@ -7,10 +8,11 @@ const navItems = [
   { to: "/wishlist", label: "Yêu thích" },
   { to: "/cart", label: "Giỏ hàng" },
   { to: "/checkout", label: "Thanh toán" },
-  { to: "/account", label: "Tài khoản" },
 ];
 
 function Header() {
+  const loggedIn = Boolean(localStorage.getItem("token"));
+  const isAdmin = loggedIn && localStorage.getItem("role") === "Admin";
   return (
     <>
       <div className="luxury-topbar">
@@ -46,6 +48,11 @@ function Header() {
                   </li>
                 ))}
               </ul>
+              <div className="nav-account">
+                {isAdmin && <NavLink className="nav-link" to="/admin/products">Quản trị</NavLink>}
+                {loggedIn ? <><NavLink className="nav-link" to="/account">Tài khoản</NavLink><LogoutButton /></> :
+                  <><NavLink className="nav-link" to="/login">Đăng nhập</NavLink><NavLink className="nav-register" to="/register">Đăng ký</NavLink></>}
+              </div>
             </div>
           </div>
         </nav>

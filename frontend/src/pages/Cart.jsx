@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { cartItems } from "../data/products";
-import { formatPrice } from "../components/ProductCard";
+import { formatPrice } from "../utils/formatPrice";
 
 function Cart() {
   // TODO: Replace mock cart items with the real cart source when backend integration is ready.
