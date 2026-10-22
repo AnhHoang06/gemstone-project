@@ -1,0 +1,19 @@
+.dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.dashboard-metric {
+  background: #fff;
+  border: 1px solid var(--ui-border, #e3dccf);
+  border-top: 2px solid #a68b54;
+  padding: 1.5rem;
+  min-width: 0;
+}
+.dashboard-metric dt { font-size: .85rem; font-weight: 500; color: #62655e; }
+.dashboard-metric dd { margin: .8rem 0; font-size: 2.5rem; color: #234d40; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.dashboard-metric .dashboard-metric-note { margin: 0; font-size: .8rem; line-height: 1.6; color: #696b62; }
+.dashboard-dependency { padding: 1.5rem; border: 1px solid var(--ui-border, #e3dccf); }
+.dashboard-dependency h2 { margin: 0 0 .7rem; font-size: 1.2rem; }
+.dashboard-dependency p { margin: 0; color: #696b62; line-height: 1.7; font-size: .9rem; }

@@ -1,6 +1,7 @@
 using GemstoneShop.Data;
 using GemstoneShop.DTOs;
 using GemstoneShop.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +41,7 @@ namespace GemstoneShop.Controllers
         }
 
         // POST /api/categories
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<CategoryDto>> Create(CategoryCreateDto dto)
         {
@@ -64,6 +66,7 @@ namespace GemstoneShop.Controllers
         }
 
         // PUT /api/categories/5
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, CategoryCreateDto dto)
         {
@@ -90,6 +93,7 @@ namespace GemstoneShop.Controllers
         }
 
         // DELETE /api/categories/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

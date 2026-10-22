@@ -134,17 +134,17 @@ function AdminCategories() {
             <h2>Danh sách danh mục</h2>
 
             {loading ? (
-                <p>Đang tải...</p>
+                <p className="empty-state" role="status">Đang tải...</p>
             ) : categories.length === 0 ? (
-                <p>Chưa có danh mục nào.</p>
+                <p className="empty-state">Chưa có danh mục nào.</p>
             ) : (
-                <table className="admin-table">
+                <div className="table-scroll" tabIndex={0} aria-label="Bảng quản lý"><table className="admin-table">
                     <thead>
                         <tr>
                             <th>Tên</th>
                             <th>Mô tả</th>
                             <th>Trạng thái</th>
-                            <th></th>
+                            <th><span className="visually-hidden">Thao tác hoặc ảnh</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -168,7 +168,7 @@ function AdminCategories() {
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                </table></div>
             )}
         </div>
     );

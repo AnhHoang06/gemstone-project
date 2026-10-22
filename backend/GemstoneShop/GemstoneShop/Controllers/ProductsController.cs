@@ -3,6 +3,7 @@ using GemstoneShop.DTOs;
 using GemstoneShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GemstoneShop.Controllers
 {
@@ -88,6 +89,7 @@ namespace GemstoneShop.Controllers
         }
 
         // POST /api/products
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ProductDto>> Create(ProductCreateDto dto)
         {
@@ -123,6 +125,7 @@ namespace GemstoneShop.Controllers
         }
 
         // PUT /api/products/5
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
         {
@@ -157,6 +160,7 @@ namespace GemstoneShop.Controllers
         }
 
         // DELETE /api/products/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -173,6 +177,7 @@ namespace GemstoneShop.Controllers
         }
 
         // PUT /api/products/5/certificate — tạo mới nếu sản phẩm chưa có chứng nhận, cập nhật nếu đã có
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}/certificate")]
         public async Task<ActionResult<CertificateDto>> UpsertCertificate(int id, CertificateUpsertDto dto)
         {
@@ -228,6 +233,7 @@ namespace GemstoneShop.Controllers
         }
 
         // DELETE /api/products/5/certificate
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}/certificate")]
         public async Task<IActionResult> DeleteCertificate(int id)
         {
@@ -254,6 +260,7 @@ namespace GemstoneShop.Controllers
 
         // POST /api/products/5/images
         // multipart/form-data, field "files" — cho phép chọn nhiều ảnh cùng lúc
+        [Authorize(Roles = "Admin")]
         [HttpPost("{id}/images")]
         [RequestSizeLimit(20_000_000)] // tổng tối đa 20MB / lần upload
         public async Task<ActionResult<List<ProductImageDto>>> UploadImages(int id, [FromForm] List<IFormFile> files)
@@ -328,6 +335,7 @@ namespace GemstoneShop.Controllers
         }
 
         // DELETE /api/products/5/images/12
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}/images/{imageId}")]
         public async Task<IActionResult> DeleteImage(int id, int imageId)
         {
@@ -370,6 +378,7 @@ namespace GemstoneShop.Controllers
         }
 
         // PUT /api/products/5/images/12/set-primary
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}/images/{imageId}/set-primary")]
         public async Task<IActionResult> SetPrimaryImage(int id, int imageId)
         {

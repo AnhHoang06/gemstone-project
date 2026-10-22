@@ -68,7 +68,9 @@ function ProductListApi() {
 
             <form className="gs-filters row g-3 align-items-end" onSubmit={handleSubmit}>
                 <div className="col-md-4">
+                    <label htmlFor="gem-search">Tên đá quý</label>
                     <input
+                        id="gem-search"
                         type="text"
                         className="form-control"
                         placeholder="Tìm theo tên sản phẩm..."
@@ -78,7 +80,9 @@ function ProductListApi() {
                 </div>
 
                 <div className="col-md-3">
+                    <label htmlFor="gem-category">Danh mục</label>
                     <select
+                        id="gem-category"
                         className="form-select"
                         value={categoryId}
                         onChange={(e) => setCategoryId(e.target.value)}
@@ -93,7 +97,9 @@ function ProductListApi() {
                 </div>
 
                 <div className="col-md-2">
+                    <label htmlFor="gem-min">Giá từ (₫)</label>
                     <input
+                        id="gem-min"
                         type="number"
                         className="form-control"
                         placeholder="Giá từ"
@@ -103,7 +109,9 @@ function ProductListApi() {
                 </div>
 
                 <div className="col-md-2">
+                    <label htmlFor="gem-max">Giá đến (₫)</label>
                     <input
+                        id="gem-max"
                         type="number"
                         className="form-control"
                         placeholder="Giá đến"
@@ -147,6 +155,7 @@ function ProductListApi() {
                                     <div className="gs-card-body">
                                         <p className="gs-card-category">{product.categoryName}</p>
                                         <h3 className="gs-card-name">{product.name}</h3>
+                                        <p className="gs-card-meta">{[product.carat != null ? `${product.carat} ct` : null, product.origin].filter(Boolean).join(" · ")}</p>
                                         <p className="gs-card-price">
                                             {product.price.toLocaleString("vi-VN")} đ
                                         </p>

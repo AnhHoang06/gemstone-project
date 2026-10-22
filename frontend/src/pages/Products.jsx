@@ -1,11 +1,14 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { products } from "../data/products";
-
-const categories = [...new Set(products.map((product) => product.type))];
+import useApiData from "../hooks/useApiData";
+import { storefrontProduct } from "../utils/catalog";
 
 function Products() {
+  const catalog = useApiData("/products");
+  const categoryList = useApiData("/categories");
+  const products = useMemo(() => (catalog.data || []).map(storefrontProduct), [catalog.data]);
+  const categories = categoryList.data || [];
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("featured");
@@ -28,7 +31,7 @@ function Products() {
       if (sortBy === "name-asc") return a.name.localeCompare(b.name);
       return 0;
     });
-  }, [searchTerm, selectedCategory, sortBy]);
+  }, [products, searchTerm, selectedCategory, sortBy]);
 
   const handleCategoryChange = (event) => {
     const nextCategory = event.target.value;
@@ -66,8 +69,8 @@ function Products() {
               <select value={selectedCategory} onChange={handleCategoryChange} aria-label="Lọc theo loại đá">
                 <option value="all">Tất cả loại đá</option>
                 {categories.map((category) => (
-                  <option value={category.toLowerCase()} key={category}>
-                    {category}
+                  <option value={category.name.toLowerCase()} key={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -83,9 +86,10 @@ function Products() {
             </label>
           </div>
           <div className="shop-toolbar">
-            <span>{visibleProducts.length} sản phẩm phù hợp</span>
+            <span>{catalog.loading ? "Đang tải sản phẩm..." : catalog.error ? catalog.error : `${visibleProducts.length} sản phẩm phù hợp`}</span>
           </div>
-          {visibleProducts.length > 0 ? (
+          {categoryList.error && <p role="alert">{categoryList.error}</p>}
+          {catalog.loading || catalog.error ? null : visibleProducts.length > 0 ? (
             <div className="product-grid">
               {visibleProducts.map((product) => (
                 <ProductCard product={product} key={product.id} />

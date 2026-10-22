@@ -3,6 +3,24 @@
    (khai báo lại ở đây để trang admin tự chạy được, không phụ
    thuộc việc products.css đã load hay chưa)
    ============================================================ */
+.admin-delete-dialog {
+    width: min(480px, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    overflow-y: auto;
+    color: var(--gs-ink, #221d17);
+    background: var(--gs-bg, #faf7f1);
+    border: 1px solid var(--gs-line, #e4dcc9);
+    border-top: 3px solid var(--gs-gold, #a9812f);
+    border-radius: 2px;
+    box-shadow: 0 16px 48px #221d1726;
+}
+.admin-delete-dialog::backdrop { background: rgb(25 34 28 / 48%); }
+.admin-page .admin-delete-dialog h2 { margin: 0 0 1rem; font-size: 1.5rem; color: var(--gs-ink); }
+.admin-delete-dialog p { line-height: 1.65; overflow-wrap: anywhere; }
+.admin-delete-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+@media (max-width: 420px) { .admin-delete-actions > button { flex: 1 1 auto; } }
 :root {
     --gs-bg: #faf7f1;
     --gs-ink: #221d17;
@@ -61,22 +79,22 @@
     margin-bottom: 1rem;
 }
 
-.form-row {
+.admin-page .form-row {
     margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
 }
 
-.form-row label {
+.admin-page .form-row label {
     font-size: 0.85rem;
     color: var(--gs-ink-soft);
 }
 
-.form-row input[type="text"],
-.form-row input[type="number"],
-.form-row textarea,
-.form-row select {
+.admin-page .form-row input[type="text"],
+.admin-page .form-row input[type="number"],
+.admin-page .form-row textarea,
+.admin-page .form-row select {
     border: 1px solid var(--gs-line);
     border-radius: 3px;
     padding: 0.55rem 0.75rem;
@@ -84,14 +102,14 @@
     font-size: 0.95rem;
 }
 
-.form-row input:focus,
-.form-row textarea:focus,
-.form-row select:focus {
+.admin-page .form-row input:focus,
+.admin-page .form-row textarea:focus,
+.admin-page .form-row select:focus {
     outline: none;
     border-color: var(--gs-gold);
 }
 
-.form-row-checkbox label {
+.admin-page .form-row-checkbox label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -185,14 +203,14 @@
 }
 
 /* ---------- Badge trạng thái ---------- */
-.badge {
+.admin-page .badge {
     display: inline-block;
     padding: 0.2rem 0.65rem;
     border-radius: 12px;
     font-size: 0.75rem;
 }
-.badge-active { background: #e3f1e9; color: var(--gs-success); }
-.badge-inactive { background: #f2e6e6; color: var(--gs-danger); }
+.admin-page .badge-active { background: #e3f1e9; color: var(--gs-success); }
+.admin-page .badge-inactive { background: #f2e6e6; color: var(--gs-danger); }
 
 /* ---------- Upload ảnh (trang thêm/sửa sản phẩm) ---------- */
 .admin-image-list {

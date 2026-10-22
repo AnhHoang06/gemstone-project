@@ -71,13 +71,14 @@ function ProductDetailApi() {
                         {product.images && product.images.length > 1 && (
                             <div className="gs-thumb-row">
                                 {product.images.map((img) => (
-                                    <img
-                                        key={img.id}
+                                    <button type="button" className="gs-thumbnail-button" key={img.id}
+                                        aria-label={`Xem ảnh ${product.images.indexOf(img) + 1} của ${product.name}`}
+                                        aria-pressed={activeImage === img.imageUrl}
+                                        onClick={() => setActiveImage(img.imageUrl)}><img
                                         src={resolveImageUrl(img.imageUrl)}
                                         alt=""
-                                        onClick={() => setActiveImage(img.imageUrl)}
                                         className={`gs-thumb ${activeImage === img.imageUrl ? "active" : ""}`}
-                                    />
+                                    /></button>
                                 ))}
                             </div>
                         )}
@@ -85,11 +86,12 @@ function ProductDetailApi() {
 
                     <div className="col-md-6">
                         <p className="gs-detail-category">{product.categoryName}</p>
-                        <h2 className="gs-detail-name">{product.name}</h2>
+                        <h1 className="gs-detail-name">{product.name}</h1>
                         <p className="gs-detail-price">{product.price.toLocaleString("vi-VN")} đ</p>
 
                         {product.description && <p className="gs-detail-desc">{product.description}</p>}
 
+                        <h2 className="gs-section-title">Thông tin đá quý</h2>
                         <table className="gs-spec-table">
                             <tbody>
                                 {product.carat != null && (
@@ -131,7 +133,7 @@ function ProductDetailApi() {
 
                         {product.certificate && (
                             <div className="gs-cert-box">
-                                <h6>Giấy chứng nhận</h6>
+                                <h2 className="gs-section-title">Giấy chứng nhận</h2>
                                 <p>Số hiệu: {product.certificate.certificateNumber}</p>
                                 <p>Đơn vị cấp: {product.certificate.authority}</p>
                                 {product.certificate.issueDate && (

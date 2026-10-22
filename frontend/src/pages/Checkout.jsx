@@ -1,5 +1,5 @@
 import { cartItems } from "../data/products";
-import { formatPrice } from "../components/ProductCard";
+import { formatPrice } from "../utils/formatPrice";
 
 function Checkout() {
   // TODO: Connect checkout submission to backend payment flow when API is available.

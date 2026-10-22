@@ -18,6 +18,56 @@ namespace GemstoneShop.Controllers
             _context = context;
         }
 
+        private IQueryable<AdminUserDto> AdminUsers() => _context.Users
+            .AsNoTracking()
+            .Select(user => new AdminUserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Address = user.Address,
+                Role = user.Role.Name,
+                IsActive = user.IsActive
+            });
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<AdminUserDto>>> GetUsers()
+        {
+            return Ok(await AdminUsers().OrderBy(user => user.Id).ToListAsync());
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<AdminUserDto>> GetUser(int id)
+        {
+            var user = await AdminUsers().FirstOrDefaultAsync(user => user.Id == id);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+            return Ok(user);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id:int}/status")]
+        public async Task<ActionResult<AdminUserDto>> UpdateStatus(int id, UpdateUserStatusRequest request)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentUserId))
+                return Unauthorized();
+            if (!request.IsActive.HasValue)
+                return BadRequest(new { message = "IsActive is required." });
+            if (id == currentUserId && !request.IsActive.Value)
+                return BadRequest(new { message = "You cannot deactivate your own account." });
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            user.IsActive = request.IsActive.Value;
+            await _context.SaveChangesAsync();
+            return Ok(await AdminUsers().SingleAsync(user => user.Id == id));
+        }
+
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()

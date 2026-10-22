@@ -7,6 +7,11 @@ using GemstoneShop.Services;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException("Configure Jwt:Key with at least 32 UTF-8 bytes using User Secrets or Jwt__Key.");
+}
 builder.Services.AddDbContext<GemstoneShopContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")

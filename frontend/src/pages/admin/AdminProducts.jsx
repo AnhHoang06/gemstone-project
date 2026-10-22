@@ -1,58 +1,75 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { resolveImageUrl } from "../../api/api";
+import ProductDeleteDialog from "../../components/ProductDeleteDialog";
 import "../../styles/admin.css";
 
 function AdminProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    function loadProducts() {
-        setLoading(true);
-        api.get("/products")
-            .then((res) => setProducts(res.data))
-            .catch((err) => console.error(err))
-            .finally(() => setLoading(false));
-    }
+    const [pendingDelete, setPendingDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
+    const deletingRef = useRef(false);
+    const headingRef = useRef(null);
 
     useEffect(() => {
-        loadProducts();
+        let active = true;
+        api.get("/products")
+            .then((res) => { if (active) setProducts(res.data); })
+            .catch((err) => console.error(err))
+            .finally(() => { if (active) setLoading(false); });
+        return () => { active = false; };
     }, []);
 
-    async function handleDelete(id, name) {
-        if (!window.confirm(`Xóa sản phẩm "${name}"? Không thể hoàn tác.`)) return;
+    function cancelDelete() {
+        if (deletingRef.current) return;
+        setPendingDelete(null);
+        setDeleteError("");
+    }
+
+    async function handleDelete() {
+        if (!pendingDelete || deletingRef.current) return;
+        const id = pendingDelete.id;
+        deletingRef.current = true;
+        setDeleting(true);
+        setDeleteError("");
         try {
             await api.delete(`/products/${id}`);
-            loadProducts();
+            setProducts((previous) => previous.filter((product) => product.id !== id));
+            setPendingDelete(null);
         } catch (err) {
-            alert(err.response?.data?.message || "Không thể xóa sản phẩm này.");
+            setDeleteError(err.response?.data?.message || "Không thể xóa sản phẩm này. Vui lòng thử lại.");
+        } finally {
+            deletingRef.current = false;
+            setDeleting(false);
         }
     }
 
     return (
         <div className="admin-page">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h1>Quản lý sản phẩm</h1>
+            <div className="admin-page-heading">
+                <h1 ref={headingRef} tabIndex={-1}>Quản lý sản phẩm</h1>
                 <Link to="/admin/products/create" className="btn btn-primary">
                     + Thêm sản phẩm
                 </Link>
             </div>
 
             {loading ? (
-                <p>Đang tải...</p>
+                <p className="empty-state" role="status">Đang tải...</p>
             ) : products.length === 0 ? (
-                <p>Chưa có sản phẩm nào.</p>
+                <p className="empty-state">Chưa có sản phẩm nào.</p>
             ) : (
-                <table className="admin-table">
+                <div className="table-scroll" tabIndex={0} aria-label="Bảng quản lý"><table className="admin-table">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th><span className="visually-hidden">Thao tác hoặc ảnh</span></th>
                             <th>Tên sản phẩm</th>
                             <th>Danh mục</th>
                             <th>Giá</th>
                             <th>Tồn kho</th>
                             <th>Trạng thái</th>
-                            <th></th>
+                            <th><span className="visually-hidden">Thao tác hoặc ảnh</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,7 +105,7 @@ function AdminProducts() {
                                         </Link>
                                         <button
                                             className="btn btn-sm btn-danger"
-                                            onClick={() => handleDelete(p.id, p.name)}
+                                            onClick={() => { setDeleteError(""); setPendingDelete(p); }}
                                         >
                                             Xóa
                                         </button>
@@ -97,8 +114,10 @@ function AdminProducts() {
                             );
                         })}
                     </tbody>
-                </table>
+                </table></div>
             )}
+            {pendingDelete && <ProductDeleteDialog product={pendingDelete} deleting={deleting}
+                error={deleteError} onCancel={cancelDelete} onConfirm={handleDelete} fallbackFocus={headingRef} />}
         </div>
     );
 }

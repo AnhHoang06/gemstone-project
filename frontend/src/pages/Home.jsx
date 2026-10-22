@@ -1,11 +1,16 @@
 import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { featuredProducts, products } from "../data/products";
+import useApiData from "../hooks/useApiData";
+import { storefrontProduct } from "../utils/catalog";
 import heroImage from "../assets/gem-hero.svg";
 
-const categories = ["Ruby", "Sapphire", "Emerald", "Diamond", "Amethyst", "Aquamarine", "Topaz", "Garnet"];
 
 function Home() {
+  const catalog = useApiData("/products");
+  const categoryList = useApiData("/categories");
+  const products = (catalog.data || []).map(storefrontProduct);
+  const categories = categoryList.data || [];
+  const latestProducts = products.slice(0, 4);
   return (
     <>
       <section className="hero-section">
@@ -38,9 +43,12 @@ function Home() {
             <h2>Đá quý theo màu sắc và cá tính</h2>
           </div>
           <div className="category-grid">
+            {categoryList.loading && <p role="status">Đang tải danh mục...</p>}
+            {categoryList.error && <p role="alert">{categoryList.error}</p>}
+            {!categoryList.loading && !categoryList.error && !categories.length && <p>Chưa có danh mục.</p>}
             {categories.map((category) => (
-              <Link className="category-tile" to={`/shop?category=${category.toLowerCase()}`} key={category}>
-                {category}
+              <Link className="category-tile" to={`/shop?category=${encodeURIComponent(category.name.toLowerCase())}`} key={category.id}>
+                {category.name}
               </Link>
             ))}
           </div>
@@ -51,13 +59,16 @@ function Home() {
         <div className="container">
           <div className="section-title section-title--split">
             <div>
-              <p className="eyebrow">Tuyển chọn nổi bật</p>
-              <h2>Đá quý nổi bật</h2>
+              <p className="eyebrow">Mới cập nhật</p>
+              <h2>Đá quý mới nhất</h2>
             </div>
-            <Link to="/shop">Xem tất cả {products.length} sản phẩm</Link>
+            <Link to="/shop">Xem tất cả{catalog.data ? ` ${products.length} sản phẩm` : ""}</Link>
           </div>
           <div className="product-grid">
-            {featuredProducts.map((product) => (
+            {catalog.loading && <p role="status">Đang tải sản phẩm...</p>}
+            {catalog.error && <p role="alert">{catalog.error}</p>}
+            {!catalog.loading && !catalog.error && !products.length && <p>Chưa có sản phẩm.</p>}
+            {latestProducts.map((product) => (
               <ProductCard product={product} key={product.id} />
             ))}
           </div>
