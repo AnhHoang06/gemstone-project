@@ -106,7 +106,7 @@ namespace GemstoneShop.Controllers
             var hasProducts = await _context.Products.AnyAsync(p => p.CategoryId == id);
             if (hasProducts)
             {
-                return BadRequest(new { message = "Không thể xóa category đang có sản phẩm bên trong. Hãy xóa hoặc chuyển sản phẩm sang category khác trước." });
+                return BadRequest(new { message = "Không thể xóa danh mục còn sản phẩm, kể cả sản phẩm đã ngừng bán. Hãy chuyển sản phẩm sang danh mục khác trước." });
             }
 
             _context.Categories.Remove(category);

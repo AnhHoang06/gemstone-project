@@ -15,7 +15,7 @@ function AdminProducts() {
 
     useEffect(() => {
         let active = true;
-        api.get("/products")
+        api.get("/products", { params: { includeInactive: true } })
             .then((res) => { if (active) setProducts(res.data); })
             .catch((err) => console.error(err))
             .finally(() => { if (active) setLoading(false); });
@@ -31,15 +31,16 @@ function AdminProducts() {
     async function handleDelete() {
         if (!pendingDelete || deletingRef.current) return;
         const id = pendingDelete.id;
+        const isActive = !pendingDelete.isActive;
         deletingRef.current = true;
         setDeleting(true);
         setDeleteError("");
         try {
-            await api.delete(`/products/${id}`);
-            setProducts((previous) => previous.filter((product) => product.id !== id));
+            await api.put(`/products/${id}/status`, { isActive });
+            setProducts((previous) => previous.map((product) => product.id === id ? { ...product, isActive } : product));
             setPendingDelete(null);
         } catch (err) {
-            setDeleteError(err.response?.data?.message || "Không thể xóa sản phẩm này. Vui lòng thử lại.");
+            setDeleteError(err.response?.data?.message || "Không thể cập nhật trạng thái sản phẩm. Vui lòng thử lại.");
         } finally {
             deletingRef.current = false;
             setDeleting(false);
@@ -96,7 +97,7 @@ function AdminProducts() {
                                     <td>{p.stock}</td>
                                     <td>
                                         <span className={p.isActive ? "badge badge-active" : "badge badge-inactive"}>
-                                            {p.isActive ? "Đang bán" : "Ẩn"}
+                                            {p.isActive ? "Đang bán" : "Ngừng bán"}
                                         </span>
                                     </td>
                                     <td className="admin-table-actions">
@@ -104,10 +105,11 @@ function AdminProducts() {
                                             Sửa
                                         </Link>
                                         <button
-                                            className="btn btn-sm btn-danger"
+                                            className={`btn btn-sm ${p.isActive ? "btn-danger" : "btn-outline"}`}
+                                            disabled={deleting}
                                             onClick={() => { setDeleteError(""); setPendingDelete(p); }}
                                         >
-                                            Xóa
+                                            {p.isActive ? "Ngừng bán" : "Bán lại"}
                                         </button>
                                     </td>
                                 </tr>
