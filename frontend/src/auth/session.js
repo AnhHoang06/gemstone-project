@@ -1,5 +1,32 @@
 export function clearSession() {
   for (const key of ["token", "role", "fullName"]) localStorage.removeItem(key);
+  clearCheckoutDrafts();
+  window.dispatchEvent(new Event("auth-session-changed"));
+}
+
+function clearCheckoutDrafts() {
+  for (const key of Object.keys(sessionStorage))
+    if (key.startsWith("commerce-checkout:")) sessionStorage.removeItem(key);
+}
+
+export function getSessionToken() { return localStorage.getItem("token") || ""; }
+
+export function saveSession(data) {
+  clearCheckoutDrafts();
+  for (const key of ["token", "role", "fullName"]) localStorage.setItem(key, data[key]);
+  window.dispatchEvent(new Event("auth-session-changed"));
+}
+
+export function subscribeSession(listener) {
+  const onStorage = (event) => {
+    if (event.key === "token" || event.key === null) { clearCheckoutDrafts(); listener(); }
+  };
+  window.addEventListener("auth-session-changed", listener);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener("auth-session-changed", listener);
+    window.removeEventListener("storage", onStorage);
+  };
 }
 
 function decodeSegment(segment) {

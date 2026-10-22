@@ -22,6 +22,7 @@ function AdminRoute({ children }) {
       <NavLink to="/admin/products">Sản phẩm</NavLink>
       <NavLink to="/admin/categories">Danh mục</NavLink>
       <NavLink to="/admin/customers">Khách hàng</NavLink>
+      <NavLink to="/admin/orders">Đơn hàng</NavLink>
       <Link to="/">Về cửa hàng ↗</Link>
     </nav>
     {children}

@@ -1,0 +1,10 @@
+.commerce-page { padding-top: 2rem; padding-bottom: 3rem; min-height: 55vh; }
+.commerce-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin: 1.5rem 0; }
+.commerce-thumb { width: 48px; height: 48px; object-fit: contain; margin-right: .75rem; }
+.commerce-page input[type="number"] { width: 5rem; padding: .5rem; border: 1px solid #cfc8b7; }
+.commerce-page fieldset { display: grid; gap: 1rem; border: 0; padding: 0; margin-bottom: 1rem; }
+.commerce-page .checkout-form label { display: grid; gap: .35rem; }
+.commerce-page .checkout-form input, .commerce-page .checkout-form textarea { width: 100%; padding: .65rem; border: 1px solid #cfc8b7; border-radius: 2px; }
+.commerce-page .checkout-form > a { display: inline-block; margin: 1rem; }
+.cart-count { font-size: .8rem; padding: .1rem .35rem; background: #174b3b; color: #fff; }
+@media (max-width: 700px) { .commerce-page .checkout-grid { display: block; } .commerce-page .summary-box { margin-top: 1.5rem; } }

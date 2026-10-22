@@ -21,6 +21,10 @@ import Register from "./pages/auth/Register";
 import AdminRoute from "./components/AdminRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChangePassword from "./pages/ChangePassword";
+import OrderHistory from "./pages/OrderHistory";
+import OrderDetail from "./pages/OrderDetail";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
 
 function App() {
   return (
@@ -34,6 +38,8 @@ function App() {
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+          <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           {/* Sản phẩm lấy từ API (feature-product) */}
           <Route path="/products" element={<ProductListApi />} />
           <Route path="/products/:id" element={<ProductDetailApi />} />
@@ -50,6 +56,8 @@ function App() {
         <Route path="/admin/categories" element={<AdminRoute> <AdminCategories /> </AdminRoute>} />
         <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetail /></AdminRoute>} />
       </Routes>
     </BrowserRouter>
   );

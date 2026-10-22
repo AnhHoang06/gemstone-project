@@ -1,5 +1,5 @@
 import axios from "axios";
-import { logout } from "../auth/session";
+import { getSessionToken, logout } from "../auth/session";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "https://localhost:1111/api";
@@ -12,7 +12,8 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = getSessionToken();
+  config.sessionToken = token;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -22,8 +23,14 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.sessionToken !== getSessionToken())
+      throw new axios.CanceledError("Session changed");
+    return response;
+  },
   (error) => {
+    if (error.config && error.config.sessionToken !== getSessionToken())
+      return Promise.reject(new axios.CanceledError("Session changed"));
     if (error.response?.status === 401) logout();
     return Promise.reject(error);
   },

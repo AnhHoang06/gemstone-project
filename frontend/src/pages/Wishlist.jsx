@@ -15,7 +15,7 @@ function Wishlist() {
         <div className="container">
           <div className="product-grid">
             {wishlistItems.map((product) => (
-              <ProductCard product={product} key={product.id} />
+              <ProductCard product={product} key={product.id} allowCart={false} />
             ))}
           </div>
         </div>
