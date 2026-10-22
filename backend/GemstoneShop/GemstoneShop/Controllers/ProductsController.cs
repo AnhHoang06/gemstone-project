@@ -33,13 +33,18 @@ namespace GemstoneShop.Controllers
             [FromQuery] string? search,
             [FromQuery] int? categoryId,
             [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice)
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] bool includeInactive = false)
         {
+            if (includeInactive && !User.IsInRole("Admin")) return Forbid();
+
             var query = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Certificate)
                 .AsQueryable();
+
+            if (!includeInactive) query = query.Where(p => p.IsActive);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -72,13 +77,15 @@ namespace GemstoneShop.Controllers
 
         // GET /api/products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDto>> GetById(int id)
+        public async Task<ActionResult<ProductDto>> GetById(int id, [FromQuery] bool includeInactive = false)
         {
+            if (includeInactive && !User.IsInRole("Admin")) return Forbid();
+
             var product = await _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Certificate)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && (includeInactive || p.IsActive));
 
             if (product == null)
             {
@@ -159,7 +166,24 @@ namespace GemstoneShop.Controllers
             return NoContent();
         }
 
-        // DELETE /api/products/5
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, UpdateProductStatusRequest request)
+        {
+            if (!request.IsActive.HasValue)
+                return BadRequest(new { message = "IsActive is required." });
+
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return NotFound(new { message = $"Không tìm thấy sản phẩm có id = {id}" });
+
+            product.IsActive = request.IsActive.Value;
+            product.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // DELETE /api/products/5 — compatibility: stop selling, never remove history.
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -170,7 +194,8 @@ namespace GemstoneShop.Controllers
                 return NotFound(new { message = $"Không tìm thấy sản phẩm có id = {id}" });
             }
 
-            _context.Products.Remove(product);
+            product.IsActive = false;
+            product.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return NoContent();

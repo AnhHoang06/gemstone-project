@@ -48,7 +48,7 @@ function AdminProductForm() {
 
     useEffect(() => {
         if (!isEditing) return;
-        api.get(`/products/${id}`)
+        api.get(`/products/${id}`, { params: { includeInactive: true } })
             .then((res) => {
                 const p = res.data;
                 setForm({
