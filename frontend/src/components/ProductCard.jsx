@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 
 import { formatPrice } from "../utils/formatPrice";
 import { resolveImageUrl } from "../api/api";
+import AddToCartButton from "./AddToCartButton";
 
-function ProductCard({ product }) {
+function ProductCard({ product, allowCart = true }) {
   return (
     <article className="product-card">
       <Link
@@ -29,9 +30,7 @@ function ProductCard({ product }) {
             <Link className="btn btn-sm btn-outline-dark" to={`/product/${product.id}`}>
               Chi tiết
             </Link>
-            <button className="btn btn-sm btn-gold" type="button">
-              Thêm giỏ
-            </button>
+            {allowCart && <AddToCartButton product={product} />}
             <button className="btn btn-sm btn-ghost" type="button" aria-label={`Thêm ${product.name} vào yêu thích`}>
               Yêu thích
             </button>

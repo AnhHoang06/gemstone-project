@@ -1,17 +1,19 @@
 import { NavLink, Link } from "react-router-dom";
 import logo from "../assets/logo-mark.svg";
 import LogoutButton from "./LogoutButton";
+import { useCommerce } from "../commerce/context";
 
 const navItems = [
   { to: "/", label: "Trang chủ" },
   { to: "/shop", label: "Đá quý" },
   { to: "/wishlist", label: "Yêu thích" },
   { to: "/cart", label: "Giỏ hàng" },
-  { to: "/checkout", label: "Thanh toán" },
+  { to: "/orders", label: "Đơn hàng" },
 ];
 
 function Header() {
-  const loggedIn = Boolean(localStorage.getItem("token"));
+  const { token, cart, cartError } = useCommerce();
+  const loggedIn = Boolean(token);
   const isAdmin = loggedIn && localStorage.getItem("role") === "Admin";
   return (
     <>
@@ -44,6 +46,7 @@ function Header() {
                   <li className="nav-item" key={item.to}>
                     <NavLink className="nav-link" to={item.to} end={item.to === "/"}>
                       {item.label}
+                      {item.to === "/cart" && loggedIn && <span className="cart-count" aria-label="Số sản phẩm trong giỏ">{cartError ? "!" : cart?.totalQuantity ?? "…"}</span>}
                     </NavLink>
                   </li>
                 ))}

@@ -3,7 +3,7 @@ import FieldError from "../../components/FieldError";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../api/api";
-import { apiError } from "../../auth/session";
+import { apiError, saveSession } from "../../auth/session";
 import AuthLayout from "../../components/AuthLayout";
 
 function Login() {
@@ -29,9 +29,7 @@ function Login() {
         password,
       });
 
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", response.data.role);
-      localStorage.setItem("fullName", response.data.fullName);
+      saveSession(response.data);
 
       if (response.data.role === "Admin") {
         navigate("/admin/products");

@@ -3,6 +3,7 @@ import { formatPrice } from "../utils/formatPrice";
 import useApiData from "../hooks/useApiData";
 import { storefrontProduct } from "../utils/catalog";
 import { resolveImageUrl } from "../api/api";
+import AddToCartButton from "../components/AddToCartButton";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -50,7 +51,7 @@ function ProductDetail() {
               </dl>
               {product.certificate?.certificateUrl && <p><a href={product.certificate.certificateUrl} target="_blank" rel="noreferrer">Xem giấy chứng nhận</a></p>}
               <div className="detail-actions">
-                <button className="btn btn-gold" type="button">Thêm giỏ hàng</button>
+                <AddToCartButton product={product} />
                 <button className="btn btn-outline-dark" type="button">Thêm yêu thích</button>
                 <Link className="btn btn-ghost" to="/shop">Quay lại Đá quý</Link>
               </div>
