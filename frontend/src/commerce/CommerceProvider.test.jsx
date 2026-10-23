@@ -1,7 +1,10 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+import Cart from "../pages/Cart";
+import { formatPrice } from "../utils/formatPrice";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), request: vi.fn(), connections: [], failStart: false }));
-vi.mock("../api/api", () => ({ default: { get: mocks.get, request: mocks.request }, API_ORIGIN: "http://localhost:5113" }));
+vi.mock("../api/api", () => ({ default: { get: mocks.get, request: mocks.request }, API_ORIGIN: "http://localhost:5113", resolveImageUrl: value => value }));
 vi.mock("@microsoft/signalr", () => ({
   LogLevel: { None: 6 },
   HubConnectionBuilder: class {
@@ -48,6 +51,75 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("user-scoped commerce lifecycle", () => {
+  it("persists +/- immediately, prevents duplicate requests and renders server totals", async () => {
+    const response = quantity => ({ data: { items: [{ productId: 1, name: "Ruby", price: 1000000,
+      quantity, lineTotal: 1000000 * quantity, stock: 5, isActive: true }], total: 1000000 * quantity, totalQuantity: quantity } });
+    mocks.get.mockResolvedValue(response(1));
+    let complete;
+    mocks.request.mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+    session("A");
+    await act(async () => { render(<MemoryRouter><CommerceProvider><Cart /></CommerceProvider></MemoryRouter>); });
+    expect(screen.queryByRole("button", { name: "Cập nhật" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Giảm số lượng Ruby" }).disabled).toBe(true);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Tăng số lượng Ruby" }));
+      fireEvent.click(screen.getByRole("button", { name: "Tăng số lượng Ruby" }));
+    });
+    expect(mocks.request).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("spinbutton").disabled).toBe(true);
+    expect(screen.queryByRole("link", { name: "Đặt hàng" })).toBeNull();
+    expect(mocks.request).toHaveBeenCalledWith({ method: "put", url: "/cart/items/1", data: { quantity: 2 } });
+    expect(screen.queryByText(formatPrice(2000000))).toBeNull();
+    await act(async () => { complete(response(2)); });
+    expect(screen.getByRole("spinbutton").value).toBe("2");
+    expect(screen.getByRole("cell", { name: formatPrice(2000000) })).toBeTruthy();
+    expect(screen.getByText(/Tổng:/).textContent).toBe(`Tổng: ${formatPrice(2000000)}`);
+    expect(screen.queryByText(/Số lượng đã lưu|Bạn đã thay đổi|Nhấn.*Cập nhật/)).toBeNull();
+    expect(screen.getByRole("link", { name: "Đặt hàng" })).toBeTruthy();
+    mocks.request.mockResolvedValueOnce(response(1));
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Giảm số lượng Ruby" })); });
+    expect(mocks.request).toHaveBeenLastCalledWith({ method: "put", url: "/cart/items/1", data: { quantity: 1 } });
+    expect(screen.getByRole("spinbutton").value).toBe("1");
+    expect(screen.getByRole("button", { name: "Giảm số lượng Ruby" }).disabled).toBe(true);
+  });
+
+  it("saves manual input on blur/Enter, restores server quantity on failure and validates input", async () => {
+    const response = quantity => ({ data: { items: [{ productId: 1, name: "Ruby", price: 1000000,
+      quantity, lineTotal: 1000000 * quantity, stock: 5, isActive: true }], total: 1000000 * quantity, totalQuantity: quantity } });
+    mocks.get.mockResolvedValue(response(1)); session("A");
+    await act(async () => { render(<MemoryRouter><CommerceProvider><Cart /></CommerceProvider></MemoryRouter>); });
+    const input = screen.getByRole("spinbutton");
+    fireEvent.change(input, { target: { value: "2" } });
+    expect(mocks.request).not.toHaveBeenCalled();
+    mocks.request.mockResolvedValueOnce(response(2));
+    await act(async () => { fireEvent.blur(input); });
+    expect(input.value).toBe("2");
+    expect(screen.getByRole("link", { name: "Đặt hàng" })).toBeTruthy();
+
+    fireEvent.change(input, { target: { value: "3" } });
+    let fail;
+    mocks.request.mockImplementationOnce(() => new Promise((resolve, reject) => { fail = reject; }));
+    // Enter submits the quantity form; a following blur must not submit it again.
+    await act(async () => { fireEvent.submit(input.closest("form")); fireEvent.blur(input); });
+    expect(mocks.request).toHaveBeenCalledTimes(2);
+    await act(async () => { fail({ response: { status: 409, data: { message: "Không đủ tồn kho." } } }); });
+    expect(input.value).toBe("2");
+    expect(screen.getByText(/Không cập nhật được số lượng/)).toBeTruthy();
+    expect(screen.getByText(/Tổng:/).textContent).toBe(`Tổng: ${formatPrice(2000000)}`);
+    for (const invalid of ["", "0", "1.5", "10001"]) {
+      fireEvent.change(input, { target: { value: invalid } });
+      await act(async () => { fireEvent.blur(input); });
+      expect(input.value).toBe("2");
+      expect(screen.getByText("Số lượng phải là số nguyên từ 1 đến 10.000.")).toBeTruthy();
+    }
+    expect(mocks.request).toHaveBeenCalledTimes(2);
+    mocks.request.mockResolvedValueOnce(response(3));
+    fireEvent.change(input, { target: { value: "3" } });
+    await act(async () => { fireEvent.submit(input.closest("form")); });
+    expect(input.value).toBe("3");
+    expect(screen.getByRole("link", { name: "Đặt hàng" })).toBeTruthy();
+  });
+
   it("finishes loading after mutation and ignores a late initial cart GET", async () => {
     const pending = [];
     mocks.get.mockImplementation(path => path === "/cart"

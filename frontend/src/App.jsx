@@ -20,6 +20,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import AdminRoute from "./components/AdminRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
 import ChangePassword from "./pages/ChangePassword";
 import OrderHistory from "./pages/OrderHistory";
 import OrderDetail from "./pages/OrderDetail";
@@ -46,8 +47,8 @@ function App() {
         </Route>
 
         <Route path="/test-categories" element={<TestCategories />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
         <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>}/>
         {/* Trang quản trị sản phẩm / danh mục */}
         <Route path="/admin/products" element={<AdminRoute> <AdminProducts /> </AdminRoute>} />

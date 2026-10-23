@@ -9,6 +9,7 @@ public partial class GemstoneShopContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        ConfigureWishlist(modelBuilder);
         modelBuilder.Entity<CheckoutReceipt>(entity =>
         {
             entity.ToTable("CheckoutReceipts");

@@ -136,7 +136,7 @@ namespace GemstoneShop.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
             if (product == null)
             {
                 return NotFound(new { message = $"Không tìm thấy sản phẩm có id = {id}" });

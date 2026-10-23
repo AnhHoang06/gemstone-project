@@ -6,6 +6,7 @@ import { useCommerce } from "./context";
 import useOrdersData from "./useOrdersData";
 import { adminNextStatuses, orderLabels } from "./orderStatus";
 import { formatPrice } from "../utils/formatPrice";
+import { cancelCustomerOrder } from "./orderActions";
 
 export default function OrderDetailView({ admin = false }) {
   const { id } = useParams();
@@ -19,7 +20,8 @@ export default function OrderDetailView({ admin = false }) {
     if (submitting.current) return;
     submitting.current = true; setSaving(true); setActionError("");
     try {
-      await api.put(admin ? `/orders/admin/${id}/status` : `/orders/${id}/cancel`, admin ? { status } : undefined);
+      if (admin) await api.put(`/orders/admin/${id}/status`, { status });
+      else await cancelCustomerOrder(id);
       if (token !== getSessionToken()) return;
       setConfirmCancel(false); refresh(); void refreshCart();
     } catch (err) {

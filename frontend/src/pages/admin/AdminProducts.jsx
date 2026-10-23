@@ -15,8 +15,8 @@ function AdminProducts() {
 
     useEffect(() => {
         let active = true;
-        api.get("/products", { params: { includeInactive: true } })
-            .then((res) => { if (active) setProducts(res.data); })
+        api.get("/products")
+            .then((res) => { if (active) setProducts(res.data.filter(product => product.isActive)); })
             .catch((err) => console.error(err))
             .finally(() => { if (active) setLoading(false); });
         return () => { active = false; };
@@ -31,16 +31,15 @@ function AdminProducts() {
     async function handleDelete() {
         if (!pendingDelete || deletingRef.current) return;
         const id = pendingDelete.id;
-        const isActive = !pendingDelete.isActive;
         deletingRef.current = true;
         setDeleting(true);
         setDeleteError("");
         try {
-            await api.put(`/products/${id}/status`, { isActive });
-            setProducts((previous) => previous.map((product) => product.id === id ? { ...product, isActive } : product));
+            await api.delete(`/products/${id}`);
+            setProducts((previous) => previous.filter((product) => product.id !== id));
             setPendingDelete(null);
         } catch (err) {
-            setDeleteError(err.response?.data?.message || "Không thể cập nhật trạng thái sản phẩm. Vui lòng thử lại.");
+            setDeleteError(err.response?.data?.message || "Không thể xóa sản phẩm. Vui lòng thử lại.");
         } finally {
             deletingRef.current = false;
             setDeleting(false);
@@ -96,8 +95,8 @@ function AdminProducts() {
                                     <td>{p.price?.toLocaleString("vi-VN")}₫</td>
                                     <td>{p.stock}</td>
                                     <td>
-                                        <span className={p.isActive ? "badge badge-active" : "badge badge-inactive"}>
-                                            {p.isActive ? "Đang bán" : "Ngừng bán"}
+                                        <span className="badge badge-active">
+                                            Đang bán
                                         </span>
                                     </td>
                                     <td className="admin-table-actions">
@@ -105,11 +104,11 @@ function AdminProducts() {
                                             Sửa
                                         </Link>
                                         <button
-                                            className={`btn btn-sm ${p.isActive ? "btn-danger" : "btn-outline"}`}
+                                            className="btn btn-sm btn-danger"
                                             disabled={deleting}
                                             onClick={() => { setDeleteError(""); setPendingDelete(p); }}
                                         >
-                                            {p.isActive ? "Ngừng bán" : "Bán lại"}
+                                            Xóa
                                         </button>
                                     </td>
                                 </tr>

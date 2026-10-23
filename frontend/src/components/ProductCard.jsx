@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { formatPrice } from "../utils/formatPrice";
 import { resolveImageUrl } from "../api/api";
 import AddToCartButton from "./AddToCartButton";
+import FavoriteToggle from "./FavoriteToggle";
 
 function ProductCard({ product, allowCart = true }) {
   return (
@@ -31,9 +32,7 @@ function ProductCard({ product, allowCart = true }) {
               Chi tiết
             </Link>
             {allowCart && <AddToCartButton product={product} />}
-            <button className="btn btn-sm btn-ghost" type="button" aria-label={`Thêm ${product.name} vào yêu thích`}>
-              Yêu thích
-            </button>
+            <FavoriteToggle product={product} />
           </div>
         </div>
       </div>

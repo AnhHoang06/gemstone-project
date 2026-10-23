@@ -4,6 +4,7 @@ import useApiData from "../hooks/useApiData";
 import { storefrontProduct } from "../utils/catalog";
 import { resolveImageUrl } from "../api/api";
 import AddToCartButton from "../components/AddToCartButton";
+import FavoriteToggle from "../components/FavoriteToggle";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -52,7 +53,7 @@ function ProductDetail() {
               {product.certificate?.certificateUrl && <p><a href={product.certificate.certificateUrl} target="_blank" rel="noreferrer">Xem giấy chứng nhận</a></p>}
               <div className="detail-actions">
                 <AddToCartButton product={product} />
-                <button className="btn btn-outline-dark" type="button">Thêm yêu thích</button>
+                <FavoriteToggle product={product} />
                 <Link className="btn btn-ghost" to="/shop">Quay lại Đá quý</Link>
               </div>
             </div>

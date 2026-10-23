@@ -28,8 +28,8 @@ async function user(role) {
   if (role === 'Admin') sql(`UPDATE Users SET RoleId=(SELECT Id FROM Roles WHERE Name='Admin') WHERE Id=${id}`);
   return { id, ...expect(await call(null, 'POST', '/auth/login', { email, password }), 200) };
 }
-async function product(admin, stock) {
-  const p = expect(await call(admin.token, 'POST', '/products', { categoryId, name: tag, price: 123, stock, isActive: true }), 201);
+async function product(admin, stock, price = 123) {
+  const p = expect(await call(admin.token, 'POST', '/products', { categoryId, name: tag, price, stock, isActive: true }), 201);
   products.push(p.id); return p.id;
 }
 const checkoutBody = () => ({ requestId: randomUUID(), recipientName: 'Test', recipientPhone: '0900000000', shippingAddress: 'Local test', note: tag });
@@ -53,6 +53,16 @@ try {
   const admin = await user('Admin'), a = await user('Customer'), b = await user('Customer');
   categoryId = expect(await call(admin.token, 'POST', '/categories', { name: tag, isActive: true }), 201).id;
   const p = await product(admin, 50);
+  const million = await product(admin, 5, 1000000);
+  await add(a, million);
+  const updatedCart = expect(await call(a.token, 'PUT', `/cart/items/${million}`, { quantity: 2, price: 1, lineTotal: 1, total: 1 }), 200);
+  assert.equal(updatedCart.items[0].price, 1000000);
+  assert.equal(updatedCart.items[0].quantity, 2);
+  assert.equal(updatedCart.items[0].lineTotal, 2000000);
+  assert.equal(updatedCart.total, 2000000);
+  assert.equal((await cart(a)).total, 2000000);
+  await clear(a);
+  pass('Server cart update: 1,000,000 x 2 = 2,000,000; client-supplied totals ignored');
   expect(await call(null, 'GET', '/cart'), 401);
   expect(await call(a.token, 'GET', '/orders/admin'), 403);
   expect(await call(a.token, 'PUT', '/orders/admin/1/status', { status: 'Confirmed' }), 403);

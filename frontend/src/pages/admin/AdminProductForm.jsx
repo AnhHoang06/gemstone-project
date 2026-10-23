@@ -27,6 +27,10 @@ const emptyCertificate = {
 
 function AdminProductForm() {
     const { id } = useParams(); // có id -> đang sửa, không có -> đang thêm mới
+    return <AdminProductFormContent key={id || "new"} id={id} />;
+}
+
+function AdminProductFormContent({ id }) {
     const isEditing = Boolean(id);
     const navigate = useNavigate();
 
@@ -39,6 +43,7 @@ function AdminProductForm() {
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [loadError, setLoadError] = useState("");
 
     useEffect(() => {
         api.get("/categories")
@@ -48,9 +53,10 @@ function AdminProductForm() {
 
     useEffect(() => {
         if (!isEditing) return;
-        api.get(`/products/${id}`, { params: { includeInactive: true } })
+        api.get(`/products/${id}`)
             .then((res) => {
                 const p = res.data;
+                if (!p.isActive) { setLoadError("Sản phẩm không tồn tại hoặc đã bị xóa."); return; }
                 setForm({
                     categoryId: p.categoryId,
                     name: p.name,
@@ -76,7 +82,9 @@ function AdminProductForm() {
                     setHasCertificate(true);
                 }
             })
-            .catch((err) => console.error(err))
+            .catch((err) => setLoadError(err.response?.status === 404
+                ? "Sản phẩm không tồn tại hoặc đã bị xóa."
+                : "Không tải được sản phẩm. Vui lòng thử lại sau."))
             .finally(() => setLoading(false));
     }, [id, isEditing]);
 
@@ -203,6 +211,11 @@ function AdminProductForm() {
             setSaving(false);
         }
     }
+
+    if (loadError) return <div className="admin-page">
+        <h1>Không thể sửa sản phẩm</h1><p className="admin-error" role="alert">{loadError}</p>
+        <Link to="/admin/products">Quay lại danh sách sản phẩm</Link>
+    </div>;
 
     if (loading) {
         return (

@@ -2,7 +2,7 @@
 
 ## Setup
 
-This work is on `feature/order`, based on develop `161e0fe`. Pre-existing uncommitted reversible-product-status work is preserved. Nothing is pushed or merged.
+The Person 3 implementation is already part of develop. For the current bug-fix testing branch and setup commands, see `TESTING-UX-ROUND1.md`.
 
 1. Configure the existing database connection and a fresh JWT key as documented in `backend/GemstoneShop/GemstoneShop/AUTH-DEVELOPMENT.md`. Do not reuse any key from Git history.
 2. Run `backend/GemstoneShop/GemstoneShop/Database/Person3.sql` against that database. This additive, repeatable Database First script creates **CheckoutReceipts** and adds missing status names only. Existing tables/data/mappings are not recreated. The additional EF mapping is isolated in `Data/CommerceContext.cs`; preserve it when scaffolding.
@@ -25,7 +25,7 @@ This work is on `feature/order`, based on develop `161e0fe`. Pre-existing uncomm
 - Customer: register/login with the existing pages; open `/shop` or `/products`, add a real product, edit quantities at `/cart`, then submit `/checkout`. Recipient data is prefilled from `/api/users/me`. View `/orders` and `/orders/{id}`; cancel a Pending order.
 - Admin: login using an existing Admin account, open `/admin/orders`, filter/open the order and advance its status. In a second Customer tab/session, observe the status refresh. Disconnect/reconnect the network and confirm the connection indicator and refreshed list.
 - Existing Account, Customer, Product/Category and Dashboard routes remain. No payment provider or payment state is invented. Revenue remains outside this work.
-- Wishlist is still a separate legacy mock feature. Its sample cards intentionally cannot add mock IDs to the real cart. Storefront `/shop`, `/product/:id`, `/products` and `/products/:id` use the Product API.
+- Wishlist now uses authenticated API data; see `WISHLIST.md` for its separate additive database setup. Storefront `/shop`, `/product/:id`, `/products` and `/products/:id` use the Product API.
 
 ## Repeatable verification
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { resolveImageUrl } from "../api/api";
 import "../styles/products.css";
+import FavoriteToggle from "../components/FavoriteToggle";
 
 function ProductListApi() {
     const [products, setProducts] = useState([]);
@@ -143,7 +144,7 @@ function ProductListApi() {
                 ) : (
                     <div className="row row-cols-1 row-cols-md-3 g-4">
                         {products.map((product) => (
-                            <div className="col" key={product.id}>
+                            <div className="col gs-favorite-card" key={product.id}>
                                 <Link to={`/products/${product.id}`} className="gs-card">
                                     {getThumbnail(product) ? (
                                         <img
@@ -163,6 +164,7 @@ function ProductListApi() {
                                         </p>
                                     </div>
                                 </Link>
+                                <FavoriteToggle product={product} />
                             </div>
                         ))}
                     </div>

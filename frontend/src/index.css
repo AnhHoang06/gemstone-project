@@ -1,7 +1,11 @@
 :root {
+  --gs-font-body: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
+  --gs-font-display: "Noto Serif", "Times New Roman", serif;
+  --bs-font-sans-serif: var(--gs-font-body);
+  --bs-body-font-family: var(--gs-font-body);
   color: #342f27;
   background: #fffaf0;
-  font-family: "Quattrocento Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: var(--gs-font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -13,6 +17,7 @@
 }
 
 body {
+  font-family: var(--gs-font-body);
   margin: 0;
   min-width: 320px;
 }
@@ -30,4 +35,9 @@ input,
 select,
 textarea {
   font: inherit;
+  font-family: var(--gs-font-body);
+}
+
+.btn, table, dialog {
+  font-family: var(--gs-font-body);
 }

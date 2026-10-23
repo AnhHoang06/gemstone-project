@@ -21,7 +21,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .logout-button:hover, .secondary-action:hover, .nav-register:hover { background: #eee9df; color: var(--ui-ink); }
 .auth-page { padding: clamp(2rem, 6vw, 5rem) 1rem; }
 .auth-panel { max-width: 520px; margin: auto; padding: clamp(1.4rem, 4vw, 3rem); background: #fff; border: 1px solid var(--ui-border); box-shadow: 0 8px 30px #29201505; }
-.auth-panel h1, .account-panel h2, .admin-page h1, .gs-detail-name { font-family: "Playfair Display", Georgia, serif; font-weight: 500; }
+.auth-panel h1, .account-panel h2, .admin-page h1, .gs-detail-name { font-family: var(--gs-font-display); font-weight: 500; }
 .auth-panel h1 { font-size: clamp(1.8rem, 4vw, 2.25rem); margin-bottom: .8rem; }
 .eyebrow { text-transform: uppercase; font-size: .67rem; letter-spacing: .16em; color: #7b653b; margin-bottom: 1.3rem; }
 .form-intro, .auth-switch { color: var(--ui-muted); font-size: .9rem; line-height: 1.7; }
@@ -50,8 +50,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .account-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
 .admin-shell { min-height: 100vh; background: var(--ui-paper); }
 .admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem max(1rem, calc((100% - 1120px)/2)); background: #fff; border-bottom: 1px solid var(--ui-border); }
-.admin-brand { font: 1.4rem "Playfair Display", Georgia, serif; text-decoration: none; color: var(--ui-ink); }
-.admin-brand span { display: block; font: .65rem system-ui, sans-serif; letter-spacing: .15em; text-transform: uppercase; color: var(--ui-muted); margin-top: .4rem; }
+.admin-brand { font: 1.4rem var(--gs-font-display); text-decoration: none; color: var(--ui-ink); }
+.admin-brand span { display: block; font: .65rem var(--gs-font-body); letter-spacing: .15em; text-transform: uppercase; color: var(--ui-muted); margin-top: .4rem; }
 .admin-account { display: flex; align-items: center; gap: 1rem; font-size: .85rem; }
 .admin-account a { color: var(--ui-ink); text-underline-offset: 4px; }
 .admin-nav { display: flex; gap: 1.75rem; overflow-x: auto; padding: 0 max(1rem, calc((100% - 1120px)/2)); border-bottom: 1px solid var(--ui-border); background: #fff; }
@@ -92,7 +92,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .gs-card-price, .gs-detail-price { color: var(--ui-green); }
 .gs-detail-name { font-size: clamp(1.9rem, 3vw, 2.65rem); line-height: 1.25; }
 .gs-detail-main-image { border: 1px solid var(--ui-border); }
-.gs-section-title { font: 1.1rem "Playfair Display", Georgia, serif; margin: 1.5rem 0 .8rem; }
+.gs-section-title { font: 1.1rem var(--gs-font-display); margin: 1.5rem 0 .8rem; }
 .gs-spec-table th { font-weight: 400; font-size: .85rem; }
 .gs-spec-table td { font-weight: 500; }
 .gs-cert-box { background: #fff; border-color: var(--ui-border); border-left: 3px solid #a68b54; }

@@ -84,7 +84,7 @@ function AdminCategories() {
         <div className="admin-page">
             <h1>Quản lý danh mục</h1>
 
-            <form className="admin-form" onSubmit={handleSubmit}>
+            <form id="category-edit-form" className="admin-form" onSubmit={handleSubmit}>
                 <h2>{editingId ? "Sửa danh mục" : "Thêm danh mục mới"}</h2>
 
                 {error && <div className="admin-error">{error}</div>}
@@ -152,7 +152,18 @@ function AdminCategories() {
                     </thead>
                     <tbody>
                         {categories.map((c) => (
-                            <tr key={c.id}>
+                            <tr key={c.id} className="category-edit-row" tabIndex={0}
+                                aria-label={`Sửa danh mục ${c.name}`} aria-selected={editingId === c.id}
+                                aria-controls="category-edit-form" aria-keyshortcuts="Enter Space"
+                                onClick={(event) => {
+                                    if (event.defaultPrevented || event.target.closest('a, button, input, select, textarea, [role="button"]')) return;
+                                    startEdit(c);
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+                                    event.preventDefault();
+                                    startEdit(c);
+                                }}>
                                 <td>{c.name}</td>
                                 <td>{c.description}</td>
                                 <td>
@@ -161,10 +172,7 @@ function AdminCategories() {
                                     </span>
                                 </td>
                                 <td className="admin-table-actions">
-                                    <button className="btn btn-sm btn-outline" onClick={() => startEdit(c)}>
-                                        Sửa
-                                    </button>
-                                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(c.id)}>
+                                    <button className="btn btn-sm btn-danger" onClick={(event) => { event.stopPropagation(); handleDelete(c.id); }}>
                                         Xóa
                                     </button>
                                 </td>

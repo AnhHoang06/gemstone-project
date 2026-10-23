@@ -1,23 +1,27 @@
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { wishlistItems } from "../data/products";
+import { useWishlist } from "../wishlist/context";
 
 function Wishlist() {
-  // TODO: Replace static wishlist items with user-specific data after auth/backend wiring.
+  const { items, loading, busy, error, refresh } = useWishlist();
+  useEffect(() => { void refresh(); }, [refresh]);
   return (
     <>
       <section className="page-title">
         <div className="container">
           <h1>Yêu thích</h1>
-          <p>Danh sách yêu thích đang dùng dữ liệu minh họa để xem nhanh các viên đá đã lưu.</p>
+          <p>Những viên đá bạn đã lưu. Sản phẩm ngừng bán sẽ tạm ẩn khỏi danh sách.</p>
         </div>
       </section>
       <section className="products-section">
         <div className="container">
-          <div className="product-grid">
-            {wishlistItems.map((product) => (
-              <ProductCard product={product} key={product.id} allowCart={false} />
-            ))}
-          </div>
+          <button className="btn btn-outline" disabled={loading || busy} onClick={refresh}>Tải lại danh sách</button>
+          {error && <p className="notice notice-error" role="alert">{error}</p>}
+          {loading ? <p role="status">Đang tải yêu thích...</p> : !error && items?.length === 0 ?
+            <div className="empty-state">Bạn chưa có sản phẩm yêu thích đang bán. <Link to="/shop">Khám phá đá quý</Link></div> :
+            items && <div className="product-grid">{items.map(product =>
+              <ProductCard key={product.id} product={{ ...product, type: product.categoryName }} />)}</div>}
         </div>
       </section>
     </>

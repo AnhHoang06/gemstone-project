@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 
 export default function ProductDeleteDialog({ product, deleting, error, onCancel, onConfirm, fallbackFocus }) {
     const dialogRef = useRef(null);
-    const action = product.isActive ? "Ngừng bán" : "Bán lại";
 
     useEffect(() => {
         const dialog = dialogRef.current;
@@ -31,17 +30,17 @@ export default function ProductDeleteDialog({ product, deleting, error, onCancel
         aria-busy={deleting} onClick={handleBackdrop}
         onCancel={(event) => { event.preventDefault(); if (!deleting) onCancel(); }}>
         <p className="eyebrow">Gem Aurelia · Quản lý sản phẩm</p>
-        <h2 id="delete-product-title">{action} sản phẩm?</h2>
-        <p id="delete-product-description">{action} <strong>{product.name}</strong>? {product.isActive
-            ? "Sản phẩm sẽ được ẩn khỏi khách hàng. Ảnh, chứng nhận và lịch sử đơn hàng được giữ nguyên. Bạn có thể bán lại sản phẩm sau này."
-            : "Sản phẩm sẽ hiển thị trở lại trong cửa hàng."}</p>
+        <h2 id="delete-product-title">Xóa sản phẩm?</h2>
+        <p><strong>{product.name}</strong></p>
+        <p id="delete-product-description">Sản phẩm sẽ bị xóa khỏi danh sách quản lý và không còn hiển thị cho khách hàng.</p>
+        <p>Dữ liệu lịch sử đơn hàng vẫn được giữ lại.</p>
         {error && <p className="admin-error" role="alert">{error}</p>}
         <div className="admin-delete-actions">
             <button type="button" className="btn btn-outline" disabled={deleting} onClick={onCancel} autoFocus>Hủy</button>
-            <button type="button" className={`btn ${product.isActive ? "btn-danger" : "btn-primary"}`} disabled={deleting} onClick={onConfirm}>
-                {deleting ? "Đang cập nhật..." : action}
+            <button type="button" className="btn btn-danger" disabled={deleting} onClick={onConfirm}>
+                {deleting ? "Đang xóa..." : "Xóa"}
             </button>
         </div>
-        <span className="visually-hidden" role="status">{deleting ? "Đang cập nhật trạng thái sản phẩm, vui lòng chờ." : ""}</span>
+        <span className="visually-hidden" role="status">{deleting ? "Đang xóa sản phẩm, vui lòng chờ." : ""}</span>
     </dialog>;
 }

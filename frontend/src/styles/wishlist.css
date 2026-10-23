@@ -1,0 +1,10 @@
+.favorite-control { position: relative; display: inline-flex; align-items: center; vertical-align: middle; }
+.favorite-toggle { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid var(--ui-border); border-radius: 2px; background: var(--ui-paper); color: var(--ui-green); cursor: pointer; }
+.favorite-toggle:hover, .favorite-toggle.is-active { border-color: #a9812f; background: #f5f0e4; }
+.favorite-toggle:disabled { cursor: wait; opacity: .55; }
+.favorite-tooltip { position: absolute; bottom: calc(100% + .4rem); left: 50%; transform: translateX(-50%); z-index: 5; padding: .3rem .5rem; white-space: nowrap; background: var(--ui-green); color: #fff; font-size: .75rem; pointer-events: none; visibility: hidden; }
+.favorite-control:hover .favorite-tooltip, .favorite-control:focus-within .favorite-tooltip { visibility: visible; }
+.favorite-error { max-width: 250px; margin-left: .5rem; color: #823a2e; font-size: .8rem; }
+.favorite-error button { background: transparent; color: inherit; border: 0; text-decoration: underline; }
+.gs-favorite-card { position: relative; }
+.gs-favorite-card > .favorite-control { position: absolute; top: .75rem; right: 1.5rem; z-index: 2; }

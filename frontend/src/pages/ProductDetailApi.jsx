@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api, { resolveImageUrl } from "../api/api";
 import "../styles/products.css";
 import AddToCartButton from "../components/AddToCartButton";
+import FavoriteToggle from "../components/FavoriteToggle";
 
 function ProductDetailApi() {
     const { id } = useParams();
@@ -91,6 +92,7 @@ function ProductDetailContent({ id }) {
                         <h1 className="gs-detail-name">{product.name}</h1>
                         <p className="gs-detail-price">{product.price.toLocaleString("vi-VN")} đ</p>
                         <AddToCartButton product={product} />
+                        <FavoriteToggle product={product} />
 
                         {product.description && <p className="gs-detail-desc">{product.description}</p>}
 

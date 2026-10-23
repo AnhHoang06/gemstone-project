@@ -31,8 +31,6 @@
     --gs-danger: #8a2e2e;
     --gs-success: #2f6b4f;
 
-    --gs-font-display: "Playfair Display", Georgia, serif;
-    --gs-font-body: "Inter", -apple-system, sans-serif;
 }
 
 .admin-page {
@@ -264,3 +262,9 @@
     padding: 0.1rem 0.4rem;
     border-radius: 2px;
 }
+
+.admin-table tbody .category-edit-row { cursor: pointer; }
+.admin-table tbody .category-edit-row:hover { background: #f5f2e9; }
+.admin-table tbody .category-edit-row[aria-selected="true"] { background: #edf3ee; }
+.admin-table tbody .category-edit-row[aria-selected="true"] > td:first-child { box-shadow: inset 3px 0 #a9812f; }
+.admin-table tbody .category-edit-row:focus-visible { outline: 2px solid #947333; outline-offset: -2px; }
