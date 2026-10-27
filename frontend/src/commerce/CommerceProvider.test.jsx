@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import CartToast from "../components/CartToast";
+import AddToCartButton from "../components/AddToCartButton";
 import Cart from "../pages/Cart";
 import { formatPrice } from "../utils/formatPrice";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), request: vi.fn(), connections: [], failStart: false }));
@@ -50,6 +52,84 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
+function ToastProbe() {
+  const location = useLocation();
+  return <><Probe /><AddToCartButton product={{ id: 1, stock: 5, isActive: true }} /><CartToast />
+    <p data-testid="location">{location.pathname}</p></>;
+}
+
+describe("cart notifications", () => {
+  const setup = async () => {
+    session("A");
+    await act(async () => { render(<MemoryRouter><CommerceProvider><ToastProbe /></CommerceProvider></MemoryRouter>); });
+  };
+  it("waits for API success, updates the badge and navigates to cart", async () => {
+    vi.useFakeTimers();
+    let complete;
+    mocks.request.mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+    await setup();
+    await act(async () => { fireEvent.click(screen.getByText("Thêm giỏ hàng")); });
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("button", { name: "Đang cập nhật..." }).disabled).toBe(true);
+    await act(async () => { complete({ data: { ...cartResponse(2).data, items: [{ productId: 1, name: "Ruby" }] } }); });
+    expect(screen.getByRole("status").textContent).toBe("Đã thêm vào giỏ hàng.Ruby");
+    expect(screen.getByTestId("cart").textContent).toBe("2");
+    fireEvent.click(screen.getByRole("link", { name: "Xem giỏ hàng" }));
+    expect(screen.getByTestId("location").textContent).toBe("/cart");
+    expect(screen.getByRole("status").closest("aside").className).toContain("cart-toast--closing");
+    await act(async () => { await vi.advanceTimersByTimeAsync(200); });
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+  it("replaces the toast, resets its timer, pauses on focus and supports manual close", async () => {
+    vi.useFakeTimers();
+    mocks.request.mockResolvedValue(cartResponse(2));
+    await setup();
+    const add = async () => { await act(async () => { fireEvent.click(screen.getByText("Thêm giỏ hàng")); }); };
+    await add();
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+    await add();
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+    expect(screen.getByRole("status")).toBeTruthy();
+    const toast = screen.getByRole("status").closest("aside");
+    fireEvent.mouseEnter(toast);
+    expect(toast.className).toContain("cart-toast--paused");
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    expect(screen.getByRole("status")).toBeTruthy();
+    fireEvent.mouseLeave(toast);
+    const link = screen.getByRole("link", { name: "Xem giỏ hàng" });
+    fireEvent.focus(link);
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    expect(screen.getByRole("status")).toBeTruthy();
+    fireEvent.blur(link);
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(screen.getByRole("status").closest("aside").className).toContain("cart-toast--closing");
+    await act(async () => { await vi.advanceTimersByTimeAsync(200); });
+    expect(screen.queryByRole("status")).toBeNull();
+    await add();
+    fireEvent.click(screen.getByRole("button", { name: "Đóng thông báo giỏ hàng" }));
+    expect(screen.getByRole("status")).toBeTruthy();
+    await act(async () => { await vi.advanceTimersByTimeAsync(200); });
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+  it("shows failure without success or badge changes and clears notifications on session change", async () => {
+    mocks.request.mockRejectedValue({ response: { data: { message: "Không đủ tồn kho." } } });
+    await setup();
+    await act(async () => { fireEvent.click(screen.getByText("Thêm giỏ hàng")); });
+    expect(screen.getByRole("status").textContent).toBe("Không đủ tồn kho.");
+    expect(screen.queryByText("Đã thêm vào giỏ hàng.")).toBeNull();
+    expect(screen.getByTestId("cart").textContent).toBe("1");
+    await act(async () => { session("B"); });
+    expect(screen.queryByRole("status")).toBeNull();
+    let complete;
+    mocks.request.mockImplementation(() => new Promise(resolve => { complete = resolve; }));
+    await act(async () => { fireEvent.click(screen.getByText("Thêm giỏ hàng")); });
+    await act(async () => { clearSession(); complete(cartResponse(9)); });
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByTestId("cart").textContent).toBe("empty");
+  });
+});
+
 describe("user-scoped commerce lifecycle", () => {
   it("persists +/- immediately, prevents duplicate requests and renders server totals", async () => {
     const response = quantity => ({ data: { items: [{ productId: 1, name: "Ruby", price: 1000000,
@@ -67,15 +147,15 @@ describe("user-scoped commerce lifecycle", () => {
     });
     expect(mocks.request).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("spinbutton").disabled).toBe(true);
-    expect(screen.queryByRole("link", { name: "Đặt hàng" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Đặt hàng" }).disabled).toBe(true);
     expect(mocks.request).toHaveBeenCalledWith({ method: "put", url: "/cart/items/1", data: { quantity: 2 } });
     expect(screen.queryByText(formatPrice(2000000))).toBeNull();
     await act(async () => { complete(response(2)); });
     expect(screen.getByRole("spinbutton").value).toBe("2");
     expect(screen.getByRole("cell", { name: formatPrice(2000000) })).toBeTruthy();
-    expect(screen.getByText(/Tổng:/).textContent).toBe(`Tổng: ${formatPrice(2000000)}`);
+    expect(screen.getByText("Tổng").parentElement.textContent).toBe(`Tổng${formatPrice(2000000)}`);
     expect(screen.queryByText(/Số lượng đã lưu|Bạn đã thay đổi|Nhấn.*Cập nhật/)).toBeNull();
-    expect(screen.getByRole("link", { name: "Đặt hàng" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Đặt hàng" }).disabled).toBe(false);
     mocks.request.mockResolvedValueOnce(response(1));
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Giảm số lượng Ruby" })); });
     expect(mocks.request).toHaveBeenLastCalledWith({ method: "put", url: "/cart/items/1", data: { quantity: 1 } });
@@ -94,7 +174,7 @@ describe("user-scoped commerce lifecycle", () => {
     mocks.request.mockResolvedValueOnce(response(2));
     await act(async () => { fireEvent.blur(input); });
     expect(input.value).toBe("2");
-    expect(screen.getByRole("link", { name: "Đặt hàng" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Đặt hàng" }).disabled).toBe(false);
 
     fireEvent.change(input, { target: { value: "3" } });
     let fail;
@@ -105,7 +185,7 @@ describe("user-scoped commerce lifecycle", () => {
     await act(async () => { fail({ response: { status: 409, data: { message: "Không đủ tồn kho." } } }); });
     expect(input.value).toBe("2");
     expect(screen.getByText(/Không cập nhật được số lượng/)).toBeTruthy();
-    expect(screen.getByText(/Tổng:/).textContent).toBe(`Tổng: ${formatPrice(2000000)}`);
+    expect(screen.getByText("Tổng").parentElement.textContent).toBe(`Tổng${formatPrice(2000000)}`);
     for (const invalid of ["", "0", "1.5", "10001"]) {
       fireEvent.change(input, { target: { value: invalid } });
       await act(async () => { fireEvent.blur(input); });
@@ -117,7 +197,7 @@ describe("user-scoped commerce lifecycle", () => {
     fireEvent.change(input, { target: { value: "3" } });
     await act(async () => { fireEvent.submit(input.closest("form")); });
     expect(input.value).toBe("3");
-    expect(screen.getByRole("link", { name: "Đặt hàng" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Đặt hàng" }).disabled).toBe(false);
   });
 
   it("finishes loading after mutation and ignores a late initial cart GET", async () => {

@@ -91,8 +91,8 @@ function ProductDetailContent({ id }) {
                         <p className="gs-detail-category">{product.categoryName}</p>
                         <h1 className="gs-detail-name">{product.name}</h1>
                         <p className="gs-detail-price">{product.price.toLocaleString("vi-VN")} đ</p>
-                        <AddToCartButton product={product} />
-                        <FavoriteToggle product={product} />
+                        <div className="detail-actions"><AddToCartButton product={product} />
+                        <FavoriteToggle product={product} /></div>
 
                         {product.description && <p className="gs-detail-desc">{product.description}</p>}
 

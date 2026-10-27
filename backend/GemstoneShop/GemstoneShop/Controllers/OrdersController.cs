@@ -14,7 +14,7 @@ namespace GemstoneShop.Controllers;
 
 [ApiController, Route("api/orders"), Authorize]
 [TypeFilter(typeof(CommerceExceptionFilter))]
-public class OrdersController(GemstoneShopContext db, OrderEvents events) : ControllerBase
+public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfiguration configuration) : ControllerBase
 {
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -28,6 +28,7 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
         var orders = await query.OrderByDescending(o => o.Id).Select(o => new
         {
             o.Id, o.UserId, o.RecipientName, o.TotalAmount, o.CreatedAt, Status = o.Status.Name,
+            o.PaymentMethod, o.PaymentStatus, o.PaidAt,
             ItemCount = o.OrderDetails.Sum(d => d.Quantity)
         }).ToListAsync(ct);
         return Ok(orders);
@@ -39,6 +40,7 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
         {
             o.Id, o.UserId, o.RecipientName, o.RecipientPhone, o.ShippingAddress, o.Note,
             o.TotalAmount, o.CreatedAt, o.UpdatedAt, Status = o.Status.Name,
+            o.PaymentMethod, o.PaymentStatus, o.PaidAt,
             Items = o.OrderDetails.OrderBy(d => d.Id).Select(d => new
             { d.ProductId, d.ProductName, d.Quantity, d.UnitPrice, LineTotal = d.UnitPrice * d.Quantity }).ToList()
         }).SingleOrDefaultAsync(ct);
@@ -46,6 +48,21 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
     }
 
     [HttpGet] public Task<IActionResult> Mine(CancellationToken ct) => List(false, null, ct);
+    [HttpGet("{id:int}/payment")]
+    public async Task<IActionResult> Payment(int id, CancellationToken ct)
+    {
+        var order = await Visible(false).Where(o => o.Id == id).Select(o => new
+        {
+            o.Id, o.TotalAmount, o.PaymentMethod, o.PaymentStatus, o.PaidAt, Status = o.Status.Name
+        }).SingleOrDefaultAsync(ct);
+        if (order == null) return NotFound(new { message = "Không tìm thấy đơn hàng." });
+        var bank = configuration["Payment:BankTransfer:BankName"]?.Trim();
+        var account = configuration["Payment:BankTransfer:AccountNumber"]?.Trim();
+        var holder = configuration["Payment:BankTransfer:AccountHolder"]?.Trim();
+        var configured = !string.IsNullOrWhiteSpace(bank) && !string.IsNullOrWhiteSpace(account) && !string.IsNullOrWhiteSpace(holder);
+        return Ok(new { order, transferContent = $"DH{order.Id}", bankConfigured = configured,
+            bankName = configured ? bank : null, accountNumber = configured ? account : null, accountHolder = configured ? holder : null });
+    }
     [HttpGet("{id:int}")] public Task<IActionResult> MineDetail(int id, CancellationToken ct) => Detail(id, false, ct);
     [Authorize(Roles = "Admin"), HttpGet("admin")]
     public Task<IActionResult> AdminList([FromQuery] string? status, CancellationToken ct) => List(true, status, ct);
@@ -59,11 +76,17 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
     public async Task<IActionResult> Checkout(CheckoutRequest request, CancellationToken ct)
     {
         if (request.RequestId == Guid.Empty) return BadRequest(new { message = "Mã yêu cầu không hợp lệ." });
-        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+        if (request.PaymentMethod != null && request.PaymentMethod is not ("COD" or "BankTransfer"))
+            return BadRequest(new { message = "Phương thức thanh toán không hợp lệ." });
+        var payload = JsonSerializer.Serialize(new
         {
             Name = request.RecipientName.Trim(), Phone = request.RecipientPhone.Trim(),
             Address = request.ShippingAddress.Trim(), Note = request.Note?.Trim()
-        }))));
+        });
+        // Preserve legacy receipt hashes for requests with no payment field.
+        if (request.PaymentMethod != null) payload += "|PaymentMethod:" + request.PaymentMethod;
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
+        var paymentMethod = request.PaymentMethod ?? "COD";
         int orderId;
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
@@ -72,8 +95,9 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
             var receipt = await db.CheckoutReceipts.SingleOrDefaultAsync(r => r.UserId == UserId && r.RequestId == request.RequestId, ct);
             if (receipt != null)
             {
-                if (receipt.RequestHash != hash) return Conflict(new { message = "Mã yêu cầu đã dùng với thông tin khác. Kiểm tra lịch sử đơn trước khi đặt lại." });
-                return Ok(new { orderId = receipt.OrderId, replayed = true });
+                if (receipt.RequestHash != hash) return Conflict(new { code = "request_mismatch", message = "Mã yêu cầu đã dùng với thông tin khác. Kiểm tra lịch sử đơn trước khi đặt lại." });
+                var savedMethod = await db.Orders.Where(o => o.Id == receipt.OrderId).Select(o => o.PaymentMethod).SingleAsync(ct);
+                return Ok(new { orderId = receipt.OrderId, paymentMethod = savedMethod, replayed = true });
             }
             var cart = await db.Carts.Include(c => c.CartItems).ThenInclude(i => i.Product)
                 .SingleOrDefaultAsync(c => c.UserId == UserId, ct);
@@ -85,7 +109,8 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
             {
                 UserId = UserId, StatusId = pending.Id, RecipientName = request.RecipientName.Trim(),
                 RecipientPhone = request.RecipientPhone.Trim(), ShippingAddress = request.ShippingAddress.Trim(),
-                Note = request.Note?.Trim(), CreatedAt = DateTime.UtcNow
+                Note = request.Note?.Trim(), CreatedAt = DateTime.UtcNow,
+                PaymentMethod = paymentMethod, PaymentStatus = "Unpaid", PaidAt = null
             };
             foreach (var item in cart.CartItems.OrderBy(i => i.ProductId))
             {
@@ -109,7 +134,7 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events) : Cont
             orderId = order.Id;
         }
         await events.Publish("NewOrder", orderId, UserId);
-        return Ok(new { orderId, replayed = false });
+        return Ok(new { orderId, paymentMethod, replayed = false });
     }
 
     [HttpPut("{id:int}/cancel")]

@@ -2,6 +2,8 @@
 .favorite-toggle { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid var(--ui-border); border-radius: 2px; background: var(--ui-paper); color: var(--ui-green); cursor: pointer; }
 .favorite-toggle:hover, .favorite-toggle.is-active { border-color: #a9812f; background: #f5f0e4; }
 .favorite-toggle:disabled { cursor: wait; opacity: .55; }
+.favorite-toggle:focus-visible { outline: 2px solid #a9812f; outline-offset: 3px; }
+@media (pointer: coarse) { .favorite-toggle { width: 44px; height: 44px; } }
 .favorite-tooltip { position: absolute; bottom: calc(100% + .4rem); left: 50%; transform: translateX(-50%); z-index: 5; padding: .3rem .5rem; white-space: nowrap; background: var(--ui-green); color: #fff; font-size: .75rem; pointer-events: none; visibility: hidden; }
 .favorite-control:hover .favorite-tooltip, .favorite-control:focus-within .favorite-tooltip { visibility: visible; }
 .favorite-error { max-width: 250px; margin-left: .5rem; color: #823a2e; font-size: .8rem; }

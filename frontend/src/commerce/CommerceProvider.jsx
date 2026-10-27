@@ -11,6 +11,9 @@ export default function CommerceProvider({ children }) {
 }
 
 function CommerceSession({ token, children }) {
+  const [cartToast, setCartToast] = useState(null);
+  const toastNumber = useRef(0);
+  const dismissCartToast = useCallback(() => setCartToast(null), []);
   const [cart, setCart] = useState(null);
   const [cartError, setCartError] = useState("");
   const [cartLoading, setCartLoading] = useState(Boolean(token));
@@ -85,6 +88,7 @@ function CommerceSession({ token, children }) {
   async function mutateCart(method, path, body) {
     if (!token) { logout(); return false; }
     if (mutating.current) return false;
+    const isAdd = method.toLowerCase() === "post" && /^\/cart\/items\/\d+$/.test(path);
     mutating.current = true;
     setCartBusy(true); setCartError("");
     const number = ++requestNumber.current;
@@ -95,13 +99,19 @@ function CommerceSession({ token, children }) {
       setCartLoading(false);
       if (number === requestNumber.current) setCart(data);
       else void refreshCart();
+      if (isAdd) setCartToast({ id: ++toastNumber.current, kind: "success", message: "Đã thêm vào giỏ hàng.",
+        productName: data.items?.find(item => String(item.productId) === path.split("/").at(-1))?.name });
       return true;
     } catch (error) {
-      if (token === getSessionToken()) setCartError(apiError(error, "Không cập nhật được giỏ hàng. Kiểm tra giỏ trước khi thử lại."));
+      if (token === getSessionToken()) {
+        const message = apiError(error, "Không cập nhật được giỏ hàng. Kiểm tra giỏ trước khi thử lại.");
+        setCartError(message);
+        if (isAdd) setCartToast({ id: ++toastNumber.current, kind: "error", message });
+      }
       return false;
     } finally { mutating.current = false; setCartBusy(false); }
   }
 
   return <CommerceContext.Provider value={{ token, cart, cartError, cartLoading, cartBusy, refreshCart,
-    mutateCart, revision, connectionState }}>{children}</CommerceContext.Provider>;
+    mutateCart, revision, connectionState, cartToast, dismissCartToast }}>{children}</CommerceContext.Provider>;
 }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import api, { resolveImageUrl } from "../api/api";
+import api from "../api/api";
 import "../styles/products.css";
-import FavoriteToggle from "../components/FavoriteToggle";
+import ProductCard from "../components/ProductCard";
+import PriceRangeFilter from "../components/PriceRangeFilter";
+import CategorySidebar from "../components/CategorySidebar";
+import { storefrontProduct } from "../utils/catalog";
 
 function ProductListApi() {
     const [products, setProducts] = useState([]);
@@ -56,12 +58,6 @@ function ProductListApi() {
         fetchProducts({});
     };
 
-    const getThumbnail = (product) => {
-        if (!product.images || product.images.length === 0) return null;
-        const primary = product.images.find((img) => img.isPrimary);
-        return resolveImageUrl(primary ? primary.imageUrl : product.images[0].imageUrl);
-    };
-
     return (
         <div className="gs-page">
             <div className="gs-header">
@@ -69,6 +65,12 @@ function ProductListApi() {
                 <p>Chọn lọc từ ruby, sapphire, emerald đến kim cương tự nhiên</p>
             </div>
 
+            <div className="container catalog-layout">
+            <CategorySidebar categories={categories} value={categoryId} onChange={setCategoryId} byId>
+              <PriceRangeFilter minPrice={minPrice} maxPrice={maxPrice} onMinChange={setMinPrice}
+                onMaxChange={setMaxPrice} onSubmit={handleSubmit} disabled={loading} />
+            </CategorySidebar>
+            <div className="catalog-main">
             <form className="gs-filters row g-3 align-items-end" onSubmit={handleSubmit}>
                 <div className="col-md-4">
                     <label htmlFor="gem-search">Tên đá quý</label>
@@ -79,47 +81,6 @@ function ProductListApi() {
                         placeholder="Tìm theo tên sản phẩm..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-
-                <div className="col-md-3">
-                    <label htmlFor="gem-category">Danh mục</label>
-                    <select
-                        id="gem-category"
-                        className="form-select"
-                        value={categoryId}
-                        onChange={(e) => setCategoryId(e.target.value)}
-                    >
-                        <option value="">Tất cả danh mục</option>
-                        {categories.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="col-md-2">
-                    <label htmlFor="gem-min">Giá từ (₫)</label>
-                    <input
-                        id="gem-min"
-                        type="number"
-                        className="form-control"
-                        placeholder="Giá từ"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                    />
-                </div>
-
-                <div className="col-md-2">
-                    <label htmlFor="gem-max">Giá đến (₫)</label>
-                    <input
-                        id="gem-max"
-                        type="number"
-                        className="form-control"
-                        placeholder="Giá đến"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
                     />
                 </div>
 
@@ -136,39 +97,19 @@ function ProductListApi() {
                 </div>
             </form>
 
+            {!loading && <div className="shop-toolbar"><span>{products.length} sản phẩm phù hợp</span></div>}
             <div className="gs-grid">
                 {loading ? (
                     <p className="gs-empty-state">Đang tải...</p>
                 ) : products.length === 0 ? (
-                    <p className="gs-empty-state">Không tìm thấy sản phẩm nào.</p>
+                    <div className="gs-empty-state"><p>Không tìm thấy sản phẩm nào.</p><button type="button" className="btn btn-outline catalog-reset" onClick={handleReset}>Xem tất cả đá quý</button></div>
                 ) : (
-                    <div className="row row-cols-1 row-cols-md-3 g-4">
-                        {products.map((product) => (
-                            <div className="col gs-favorite-card" key={product.id}>
-                                <Link to={`/products/${product.id}`} className="gs-card">
-                                    {getThumbnail(product) ? (
-                                        <img
-                                            src={getThumbnail(product)}
-                                            className="gs-card-image"
-                                            alt={product.name}
-                                        />
-                                    ) : (
-                                        <div className="gs-card-image-placeholder">Chưa có ảnh</div>
-                                    )}
-                                    <div className="gs-card-body">
-                                        <p className="gs-card-category">{product.categoryName}</p>
-                                        <h3 className="gs-card-name">{product.name}</h3>
-                                        <p className="gs-card-meta">{[product.carat != null ? `${product.carat} ct` : null, product.origin].filter(Boolean).join(" · ")}</p>
-                                        <p className="gs-card-price">
-                                            {product.price.toLocaleString("vi-VN")} đ
-                                        </p>
-                                    </div>
-                                </Link>
-                                <FavoriteToggle product={product} />
-                            </div>
-                        ))}
+                    <div className="product-grid">
+                        {products.map(product => <ProductCard key={product.id} product={storefrontProduct(product)} detailPath={`/products/${product.id}`} />)}
                     </div>
                 )}
+            </div>
+            </div>
             </div>
         </div>
     );

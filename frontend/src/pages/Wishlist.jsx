@@ -19,7 +19,7 @@ function Wishlist() {
           <button className="btn btn-outline" disabled={loading || busy} onClick={refresh}>Tải lại danh sách</button>
           {error && <p className="notice notice-error" role="alert">{error}</p>}
           {loading ? <p role="status">Đang tải yêu thích...</p> : !error && items?.length === 0 ?
-            <div className="empty-state">Bạn chưa có sản phẩm yêu thích đang bán. <Link to="/shop">Khám phá đá quý</Link></div> :
+            <div className="empty-state"><p>Bạn chưa có sản phẩm yêu thích.</p><Link className="btn btn-outline" to="/shop">Khám phá đá quý</Link></div> :
             items && <div className="product-grid">{items.map(product =>
               <ProductCard key={product.id} product={{ ...product, type: product.categoryName }} />)}</div>}
         </div>

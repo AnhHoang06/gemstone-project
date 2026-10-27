@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import WishlistToast from "../components/WishlistToast";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), request: vi.fn(), logout: vi.fn() }));
 vi.mock("../api/api", () => ({ default: { get: mocks.get, request: mocks.request }, resolveImageUrl: value => value }));
@@ -15,18 +16,19 @@ const ruby = { id: 1, name: "Ruby", categoryName: "Gem", price: 1000000, stock: 
 const token = name => `${btoa('{}')}.${btoa(JSON.stringify({ name, exp: Date.now() / 1000 + 600 }))}.c2ln`.replaceAll("=", "");
 const session = name => saveSession({ token: token(name), fullName: name, role: "Customer" });
 function Probe() {
+  const location = useLocation();
   const { refresh, items } = useWishlist();
-  return <><button onClick={refresh}>Refresh probe</button><output data-testid="ids">{items?.map(x => x.id).join(',') ?? 'unknown'}</output></>;
+  return <><button onClick={refresh}>Refresh probe</button><p data-testid="ids">{items?.map(x => x.id).join(',') ?? 'unknown'}</p><p data-testid="location">{location.pathname}</p></>;
 }
 beforeEach(() => {
   localStorage.clear(); sessionStorage.clear(); vi.resetAllMocks();
   mocks.get.mockResolvedValue({ data: [] });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 async function mount(page = false) {
   await act(async () => { render(<MemoryRouter><CommerceContext.Provider value={{ cartBusy: false }}>
     <WishlistProvider><div data-testid="card"><FavoriteToggle product={ruby} /></div>
-      <div data-testid="detail"><FavoriteToggle product={ruby} /></div><Probe />{page && <Wishlist />}
+      <div data-testid="detail"><FavoriteToggle product={ruby} /></div><Probe /><WishlistToast />{page && <Wishlist />}
     </WishlistProvider></CommerceContext.Provider></MemoryRouter>); });
 }
 const heart = area => within(screen.getByTestId(area)).getByRole('button', { name: /yêu thích:/i });
@@ -39,15 +41,19 @@ it("synchronizes card/detail/list after add/remove and prevents duplicate clicks
   await act(async () => { fireEvent.click(heart('card')); fireEvent.click(heart('detail')); });
   expect(mocks.request).toHaveBeenCalledExactlyOnceWith({ method: 'post', url: '/wishlist/1' });
   expect(heart('card').disabled).toBe(true);
+  expect(screen.queryByText('Đã thêm vào yêu thích')).toBeNull();
   await act(async () => { complete({ data: [ruby] }); });
   expect(heart('card').getAttribute('aria-pressed')).toBe('true');
   expect(heart('detail').getAttribute('aria-pressed')).toBe('true');
+  expect(screen.getByRole('status').textContent).toBe('Đã thêm vào yêu thíchRuby');
   expect(screen.getByRole('heading', { name: 'Ruby' })).toBeTruthy();
   mocks.request.mockResolvedValueOnce({ data: [] });
   await act(async () => { fireEvent.click(heart('detail')); });
   expect(mocks.request).toHaveBeenLastCalledWith({ method: 'delete', url: '/wishlist/1' });
   expect(heart('card').getAttribute('aria-pressed')).toBe('false');
   expect(screen.queryByRole('heading', { name: 'Ruby' })).toBeNull();
+  expect(screen.getAllByRole('status')).toHaveLength(1);
+  expect(screen.getByRole('status').textContent).toBe('Đã xóa khỏi yêu thíchRuby');
   expect(screen.getByText(/Bạn chưa có sản phẩm yêu thích/)).toBeTruthy();
 });
 
@@ -57,6 +63,7 @@ it("keeps state on mutation failure and reloads before retrying an ambiguous res
   await act(async () => { fireEvent.click(heart('card')); });
   expect(heart('detail').getAttribute('aria-pressed')).toBe('true');
   expect(screen.getAllByRole('alert').length).toBeGreaterThan(0);
+  expect(screen.getByRole('status').closest('aside').className).toContain('cart-toast--error');
   mocks.get.mockResolvedValue({ data: [] });
   await act(async () => { fireEvent.click(heart('card')); });
   expect(mocks.request).toHaveBeenCalledTimes(1);
@@ -96,12 +103,43 @@ it("clears on account switch/logout and ignores old-session GET and mutation res
   await act(async () => { oldGet({ data: [ruby] }); oldMutation({ data: [ruby] }); });
   expect(heart('card').getAttribute('aria-pressed')).toBe('false');
   expect(screen.getByTestId('ids').textContent).toBe('');
+  expect(screen.queryByRole('status')).toBeNull();
   mocks.request.mockResolvedValueOnce({ data: [ruby] });
   await act(async () => { fireEvent.click(heart('card')); });
   expect(heart('card').getAttribute('aria-pressed')).toBe('true');
   await act(async () => { clearSession(); });
   expect(heart('card').getAttribute('aria-pressed')).toBe('false');
   expect(getSessionToken()).toBe('');
+  expect(screen.queryByRole('status')).toBeNull();
+});
+
+it("pauses and resumes wishlist feedback, animates dismissal and links to wishlist", async () => {
+  vi.useFakeTimers(); session('A'); await mount();
+  mocks.request.mockResolvedValueOnce({ data: [ruby] });
+  await act(async () => { fireEvent.click(heart('card')); });
+  const toast = screen.getByRole('status').closest('aside');
+  await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+  fireEvent.mouseEnter(toast);
+  expect(toast.className).toContain('cart-toast--paused');
+  await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+  expect(screen.getByRole('status')).toBeTruthy();
+  fireEvent.mouseLeave(toast);
+  await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+  expect(toast.className).toContain('cart-toast--closing');
+  await act(async () => { await vi.advanceTimersByTimeAsync(200); });
+  expect(screen.queryByRole('status')).toBeNull();
+  mocks.request.mockResolvedValueOnce({ data: [] });
+  await act(async () => { fireEvent.click(heart('detail')); });
+  fireEvent.click(screen.getByRole('link', { name: 'Xem yêu thích' }));
+  expect(screen.getByTestId('location').textContent).toBe('/wishlist');
+  await act(async () => { await vi.advanceTimersByTimeAsync(200); });
+  expect(screen.queryByRole('status')).toBeNull();
+  mocks.request.mockResolvedValueOnce({ data: [ruby] });
+  await act(async () => { fireEvent.click(heart('card')); });
+  fireEvent.click(screen.getByRole('button', { name: 'Đóng thông báo yêu thích' }));
+  expect(screen.getByRole('status')).toBeTruthy();
+  await act(async () => { await vi.advanceTimersByTimeAsync(200); });
+  expect(screen.queryByRole('status')).toBeNull();
 });
 
 it("uses the login flow for anonymous favorite clicks without calling the API", async () => {

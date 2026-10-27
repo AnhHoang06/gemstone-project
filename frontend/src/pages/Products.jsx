@@ -1,11 +1,16 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import PriceRangeFilter from "../components/PriceRangeFilter";
+import CategorySidebar from "../components/CategorySidebar";
 import ProductCard from "../components/ProductCard";
 import useApiData from "../hooks/useApiData";
 import { storefrontProduct } from "../utils/catalog";
 
 function Products() {
-  const catalog = useApiData("/products");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [priceQuery, setPriceQuery] = useState("");
+  const catalog = useApiData(`/products${priceQuery ? `?${priceQuery}` : ""}`);
   const categoryList = useApiData("/categories");
   const products = useMemo(() => (catalog.data || []).map(storefrontProduct), [catalog.data]);
   const categories = categoryList.data || [];
@@ -33,8 +38,7 @@ function Products() {
     });
   }, [products, searchTerm, selectedCategory, sortBy]);
 
-  const handleCategoryChange = (event) => {
-    const nextCategory = event.target.value;
+  const handleCategoryChange = (nextCategory) => {
 
     if (nextCategory === "all") {
       setSearchParams({});
@@ -43,6 +47,23 @@ function Products() {
 
     setSearchParams({ category: nextCategory });
   };
+
+  function applyPrice(event) {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    if (minPrice !== "") params.set("minPrice", minPrice);
+    if (maxPrice !== "") params.set("maxPrice", maxPrice);
+    setPriceQuery(params.toString());
+  }
+
+  function resetFilters() {
+    setSearchParams({});
+    setSearchTerm("");
+    setSortBy("featured");
+    setMinPrice("");
+    setMaxPrice("");
+    setPriceQuery("");
+  }
 
   return (
     <>
@@ -53,7 +74,13 @@ function Products() {
         </div>
       </section>
       <section className="products-section">
-        <div className="container">
+        <div className="container catalog-layout">
+          <CategorySidebar categories={categories} value={selectedCategory} onChange={handleCategoryChange} loading={categoryList.loading} error={categoryList.error}>
+            <PriceRangeFilter minPrice={minPrice} maxPrice={maxPrice} onMinChange={setMinPrice}
+              onMaxChange={setMaxPrice} onSubmit={applyPrice} disabled={catalog.loading} />
+          </CategorySidebar>
+          <div className="catalog-main">
+          <div className="catalog-banner"><span className="eyebrow">Gem Aurelia · Bộ sưu tập</span><p>Vẻ đẹp trong từng sắc đá</p><p className="catalog-banner-description">Khám phá những viên đá được tuyển chọn theo màu sắc, carat và nguồn gốc.</p></div>
           <div className="shop-controls" aria-label="Bộ lọc sản phẩm">
             <label>
               Tìm kiếm
@@ -63,17 +90,6 @@ function Products() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
-            </label>
-            <label>
-              Loại đá
-              <select value={selectedCategory} onChange={handleCategoryChange} aria-label="Lọc theo loại đá">
-                <option value="all">Tất cả loại đá</option>
-                {categories.map((category) => (
-                  <option value={category.name.toLowerCase()} key={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
             </label>
             <label>
               Sắp xếp
@@ -88,7 +104,6 @@ function Products() {
           <div className="shop-toolbar">
             <span>{catalog.loading ? "Đang tải sản phẩm..." : catalog.error ? catalog.error : `${visibleProducts.length} sản phẩm phù hợp`}</span>
           </div>
-          {categoryList.error && <p role="alert">{categoryList.error}</p>}
           {catalog.loading || catalog.error ? null : visibleProducts.length > 0 ? (
             <div className="product-grid">
               {visibleProducts.map((product) => (
@@ -97,9 +112,11 @@ function Products() {
             </div>
           ) : (
             <div className="empty-state">
-              Không tìm thấy sản phẩm phù hợp với bộ lọc hiện tại.
+              <p>Không tìm thấy sản phẩm phù hợp với bộ lọc hiện tại.</p>
+              <button type="button" className="btn btn-outline catalog-reset" onClick={resetFilters}>Xem tất cả đá quý</button>
             </div>
           )}
+          </div>
         </div>
       </section>
     </>

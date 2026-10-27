@@ -13,6 +13,9 @@ function WishlistSession({ token, children }) {
   const [loading, setLoading] = useState(Boolean(token));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [wishlistToast, setWishlistToast] = useState(null);
+  const toastNumber = useRef(0);
+  const dismissWishlistToast = useCallback(() => setWishlistToast(null), []);
   const sequence = useRef(0);
   const mutating = useRef(false);
   const mounted = useRef(false);
@@ -52,9 +55,16 @@ function WishlistSession({ token, children }) {
       const { data } = await api.request({ method, url: `/wishlist/${productId}` });
       if (!current()) return false;
       setItems(data); setLoading(false);
+      setWishlistToast({ id: ++toastNumber.current, kind: "success",
+        message: method === "post" ? "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích",
+        productName: (method === "post" ? data : items).find(item => item.id === productId)?.name });
       return true;
     } catch (err) {
-      if (current()) setError(apiError(err, "Không cập nhật được yêu thích. Vui lòng tải lại trước khi thử lại."));
+      if (current()) {
+        const message = apiError(err, "Không cập nhật được yêu thích. Vui lòng tải lại trước khi thử lại.");
+        setError(message);
+        setWishlistToast({ id: ++toastNumber.current, kind: "error", message });
+      }
       return false;
     } finally {
       mutating.current = false;
@@ -62,5 +72,6 @@ function WishlistSession({ token, children }) {
     }
   }
 
-  return <WishlistContext.Provider value={{ items, loading, busy, error, refresh, toggle, token }}>{children}</WishlistContext.Provider>;
+  return <WishlistContext.Provider value={{ items, loading, busy, error, refresh, toggle, token,
+    wishlistToast, dismissWishlistToast }}>{children}</WishlistContext.Provider>;
 }

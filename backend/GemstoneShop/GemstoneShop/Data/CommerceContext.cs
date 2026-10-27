@@ -10,6 +10,12 @@ public partial class GemstoneShopContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         ConfigureWishlist(modelBuilder);
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(x => x.PaymentMethod).HasMaxLength(20).IsUnicode(false);
+            entity.Property(x => x.PaymentStatus).HasMaxLength(20).IsUnicode(false);
+            entity.Property(x => x.PaidAt).HasColumnType("datetime2");
+        });
         modelBuilder.Entity<CheckoutReceipt>(entity =>
         {
             entity.ToTable("CheckoutReceipts");

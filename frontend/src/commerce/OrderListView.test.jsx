@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import OrderDetailView from "./OrderDetailView";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn(), refreshCart: vi.fn() }));
 vi.mock("../api/api", () => ({ default: { get: mocks.get, put: mocks.put } }));
@@ -12,7 +13,7 @@ beforeEach(() => {
   vi.resetAllMocks(); localStorage.clear(); sessionStorage.clear();
   saveSession({ token: "A", role: "Customer", fullName: "A" });
   orders = ["Pending", "Confirmed", "Shipping", "Completed", "Cancelled"].map((status, i) =>
-    ({ id: i + 1, status, recipientName: "Test", createdAt: "2026-10-22T00:00:00Z", totalAmount: 2000000 }));
+    ({ id: i + 1, status, recipientName: "Test", createdAt: "2026-10-22T00:00:00Z", totalAmount: 2000000, itemCount: 2 }));
   mocks.get.mockImplementation(() => Promise.resolve({ data: orders }));
   // jsdom has no native modal implementation; retain the DOM open/close semantics.
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
@@ -27,13 +28,14 @@ function LocationProbe() { return <output data-testid="location">{useLocation().
 
 it.each([false, true])("opens details by clicking a normal cell (admin=%s)", async admin => {
   await mount(admin);
-  const row = screen.getByRole("row", { name: "Mở chi tiết đơn hàng #2" });
+  const row = screen.getByRole(admin ? "row" : "article", { name: "Mở chi tiết đơn hàng #2" });
+  if (!admin) expect(within(row).getByText('2 sản phẩm')).toBeTruthy();
   fireEvent.click(within(row).getByText("Test"));
   expect(screen.getByTestId("location").textContent).toBe(`${admin ? "/admin" : ""}/orders/2`);
 });
 it.each([[false, "Enter"], [false, " "], [true, "Enter"], [true, " "]])("supports row keyboard navigation (admin=%s, key=%s)", async (admin, key) => {
   await mount(admin);
-  const row = screen.getByRole("row", { name: "Mở chi tiết đơn hàng #3" });
+  const row = screen.getByRole(admin ? "row" : "article", { name: "Mở chi tiết đơn hàng #3" });
   expect(row.tabIndex).toBe(0);
   row.focus(); fireEvent.keyDown(row, { key });
   expect(screen.getByTestId("location").textContent).toBe(`${admin ? "/admin" : ""}/orders/3`);
@@ -77,4 +79,35 @@ it("shows cancellation failure without inventing a Cancelled state", async () =>
 });
 it("does not add customer cancellation actions to the admin list", async () => {
   await mount(true); expect(screen.queryByRole("button", { name: "Hủy đơn" })).toBeNull();
+});
+
+it("filters admin orders using the existing API and keeps rows visible during refresh", async () => {
+  await mount(true);
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Đang giao' })); });
+  expect(mocks.get).toHaveBeenLastCalledWith('/orders/admin?status=Shipping');
+  expect(screen.getByRole('button', { name: 'Đang giao' }).getAttribute('aria-pressed')).toBe('true');
+  let complete;
+  mocks.get.mockImplementationOnce(() => new Promise(resolve => { complete = resolve; }));
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Tải lại' })); });
+  expect(screen.getByRole('row', { name: 'Mở chi tiết đơn hàng #1' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Đang cập nhật…' }).disabled).toBe(true);
+  await act(async () => { complete({ data: [] }); });
+  expect(screen.getByText('Chưa có đơn hàng phù hợp.')).toBeTruthy();
+});
+
+it.each([false, true])("shows real detail fields and preserves allowed actions (admin=%s)", async admin => {
+  mocks.get.mockResolvedValue({ data: { ...orders[0], recipientPhone: '0901234567', shippingAddress: 'Địa chỉ kiểm thử',
+    items: [{ productId: 1, productName: 'Ruby', quantity: 2, unitPrice: 1000000, lineTotal: 2000000 }] } });
+  await act(async () => { render(<MemoryRouter initialEntries={['/orders/1']}><CommerceContext.Provider value={{ token: 'A', revision: 0, refreshCart: mocks.refreshCart }}>
+    <Routes><Route path="/orders/:id" element={<OrderDetailView admin={admin} />} /></Routes>
+  </CommerceContext.Provider></MemoryRouter>); });
+  expect(screen.getByText('Địa chỉ kiểm thử')).toBeTruthy();
+  expect(screen.getByText('0901234567')).toBeTruthy();
+  expect(screen.getByRole('cell', { name: 'Ruby' })).toBeTruthy();
+  expect(screen.getByRole('cell', { name: '2' })).toBeTruthy();
+  expect(screen.getByText('Hiện tại').closest('li').getAttribute('aria-current')).toBe('step');
+  expect(Boolean(screen.queryByRole('button', { name: 'Chuyển: Đã xác nhận' }))).toBe(admin);
+  fireEvent.click(screen.getByRole('button', { name: 'Hủy đơn' }));
+  expect(screen.getByRole('group', { name: 'Xác nhận hủy đơn' })).toBeTruthy();
+  expect(mocks.put).not.toHaveBeenCalled();
 });

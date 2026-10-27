@@ -21,11 +21,6 @@ function Home() {
             <p>
               Ruby, Sapphire, Emerald và Diamond được tuyển chọn theo độ rực, xuất xứ và vẻ đẹp bền vững.
             </p>
-            <div className="hero-badges">
-              <span>GIA / GRS / SSEF</span>
-              <span>Tư vấn 1:1</span>
-              <span>Giao hàng bảo hiểm</span>
-            </div>
             <Link className="btn btn-gold btn-lg" to="/shop">
               Khám phá bộ sưu tập
             </Link>
@@ -40,7 +35,7 @@ function Home() {
         <div className="container">
           <div className="section-title">
             <p className="eyebrow">Danh mục tuyển chọn</p>
-            <h2>Đá quý theo màu sắc và cá tính</h2>
+            <h2>Khám phá theo loại đá</h2>
           </div>
           <div className="category-grid">
             {categoryList.loading && <p role="status">Đang tải danh mục...</p>}
@@ -75,13 +70,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="service-strip">
-        <div className="container">
-          <div>Được gemologist rà soát</div>
-          <div>Ưu tiên chứng nhận độc lập</div>
-          <div>Giao hàng bảo hiểm toàn cầu</div>
-        </div>
-      </section>
+
     </>
   );
 }

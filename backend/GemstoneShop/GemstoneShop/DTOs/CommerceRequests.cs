@@ -9,6 +9,9 @@ public class CartQuantityRequest
 
 public class CheckoutRequest
 {
+    // Omission supports existing clients and their persisted idempotency requests.
+    [RegularExpression("^(COD|BankTransfer)$")]
+    public string? PaymentMethod { get; set; }
     [Required] public Guid? RequestId { get; set; }
     [Required, StringLength(100)] public string RecipientName { get; set; } = "";
     [Required, StringLength(20), Phone] public string RecipientPhone { get; set; } = "";

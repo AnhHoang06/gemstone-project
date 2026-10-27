@@ -10,6 +10,7 @@ import CommerceProvider from "./commerce/CommerceProvider";
 import "./styles/commerce.css";
 import WishlistProvider from "./wishlist/WishlistProvider";
 import "./styles/wishlist.css";
+import "./styles/catalog-layout.css";
 
 validateStoredSession();
 

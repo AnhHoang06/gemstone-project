@@ -20,7 +20,7 @@ function Header() {
       <div className="luxury-topbar">
         <div className="container-fluid px-4">
           <span>Tuyển chọn đá quý cao cấp theo tiêu chuẩn sưu tầm</span>
-          <span>Tư vấn riêng: +84 900 800 100</span>
+          <span>Gem Aurelia · Bộ sưu tập đá quý</span>
         </div>
       </div>
       <header className="main-header">
@@ -36,7 +36,7 @@ function Header() {
               data-bs-target="#main-navigation"
               aria-controls="main-navigation"
               aria-expanded="false"
-              aria-label="Toggle navigation"
+              aria-label="Mở menu điều hướng"
             >
               <span className="navbar-toggler-icon" />
             </button>

@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { formatPrice } from "../utils/formatPrice";
 import useApiData from "../hooks/useApiData";
 import { storefrontProduct } from "../utils/catalog";
-import { resolveImageUrl } from "../api/api";
+import ProductGallery from "../components/ProductGallery";
 import AddToCartButton from "../components/AddToCartButton";
 import FavoriteToggle from "../components/FavoriteToggle";
 
@@ -34,9 +34,7 @@ function ProductDetail() {
       <section className="detail-section">
         <div className="container">
           <div className="detail-grid">
-            <div className="detail-media">
-              {product.imageUrl ? <img src={resolveImageUrl(product.imageUrl)} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "contain", position: "relative", zIndex: 1 }} /> : <span>Chưa có ảnh</span>}
-            </div>
+            <ProductGallery key={product.id} product={product} />
             <div className="detail-copy">
               <p className="eyebrow">{product.type}</p>
               <h2>{product.name}</h2>
