@@ -18,7 +18,7 @@ async function mount() { await act(async () => { render(<MemoryRouter><AdminProd
 
 it("lists active products only and removes a row only after successful soft deletion", async () => {
   await mount();
-  expect(mocks.get).toHaveBeenCalledWith("/products");
+  expect(mocks.get).toHaveBeenCalledWith("/products?includeInactive=true");
   expect(screen.queryByText("Hidden")).toBeNull();
   expect(screen.queryByText(/Ngừng bán|Bán lại/)).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Xóa" }));
@@ -44,12 +44,12 @@ it("keeps the row and shows a delete failure in the modal", async () => {
   expect(screen.getByRole("cell", { name: "Ruby" })).toBeTruthy();
 });
 it.each(["404", "inactive"])("blocks the edit form for %s products", async mode => {
-  mocks.get.mockImplementation(path => path === "/categories" ? Promise.resolve({ data: [] }) :
+  mocks.get.mockImplementation(path => path === "/categories?includeInactive=true" ? Promise.resolve({ data: [] }) :
     mode === "404" ? Promise.reject({ response: { status: 404 } }) : Promise.resolve({ data: { ...product, isActive: false } }));
   await act(async () => { render(<MemoryRouter initialEntries={["/admin/products/edit/1"]}><Routes>
     <Route path="/admin/products/edit/:id" element={<AdminProductForm />} />
   </Routes></MemoryRouter>); });
-  expect(mocks.get).toHaveBeenCalledWith("/products/1");
+  expect(mocks.get).toHaveBeenCalledWith("/products/1?includeInactive=true");
   expect(screen.getByRole("alert").textContent).toContain("Sản phẩm không tồn tại hoặc đã bị xóa.");
   expect(screen.queryByRole("textbox")).toBeNull();
 });

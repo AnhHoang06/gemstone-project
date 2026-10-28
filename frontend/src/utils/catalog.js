@@ -6,6 +6,6 @@ export function storefrontProduct(product) {
     certification: product.certificate
       ? `${product.certificate.authority} · ${product.certificate.certificateNumber}`
       : "Chưa có thông tin chứng nhận",
-    imageUrl: product.images?.find((image) => image.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl,
+    imageUrl: product.images?.find((image) => image.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl || product.imageUrl,
   };
 }

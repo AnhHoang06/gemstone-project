@@ -42,7 +42,7 @@ it("preserves alternate detail routes and delegates favorite/cart actions to exi
   render(<MemoryRouter><WishlistContext.Provider value={{ items: [], toggle }}><CommerceContext.Provider value={{ mutateCart }}>
     <ProductCard product={{ id: 7, name: "Ruby", price: 1000000, stock: 3, type: "Ruby" }} detailPath="/products/7" />
   </CommerceContext.Provider></WishlistContext.Provider></MemoryRouter>);
-  expect(screen.getByRole("link", { name: "Chi tiết" }).getAttribute("href")).toBe("/products/7");
+  expect(screen.getByRole("link", { name: "Xem chi tiết" }).getAttribute("href")).toBe("/products/7");
   fireEvent.click(screen.getByRole("button", { name: "Yêu thích: Ruby" }));
   expect(toggle).toHaveBeenCalledWith(7);
 });

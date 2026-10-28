@@ -1,0 +1,72 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+const mocks = vi.hoisted(() => ({ get: vi.fn(), commerce: { token: null } }));
+vi.mock('../api/api', () => ({ default: mocks, resolveImageUrl: value => value }));
+vi.mock('../commerce/context', () => ({ useCommerce: () => mocks.commerce }));
+vi.mock('./ProductCard', () => ({ default: ({ product }) => <article>{product.name}</article> }));
+import ProductSearchBar from './ProductSearchBar';
+import ProductCarousel from './ProductCarousel';
+import LegacyProductRedirect from './LegacyProductRedirect';
+import Header from './Header';
+function Location() { const l = useLocation(), navigate = useNavigate(); return <><output data-testid="url">{l.pathname}{l.search}</output><button onClick={() => navigate('/shop?q=Ruby')}>URL Ruby</button></>; }
+const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
+beforeEach(() => { vi.resetAllMocks(); mocks.get.mockResolvedValue({ data: [] }); });
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+it('debounces 300ms, ignores a stale response, and opens a suggestion using the keyboard', async () => {
+  vi.useFakeTimers(); const old = deferred(), current = deferred(); mocks.get.mockReturnValueOnce(old.promise).mockReturnValueOnce(current.promise);
+  render(<MemoryRouter><ProductSearchBar /><Location /></MemoryRouter>);
+  const input = screen.getByRole('combobox');
+  fireEvent.change(input, { target: { value: 'ru' } });
+  await act(() => vi.advanceTimersByTimeAsync(299)); expect(mocks.get).not.toHaveBeenCalled();
+  await act(() => vi.advanceTimersByTimeAsync(1)); expect(mocks.get).toHaveBeenCalledTimes(1);
+  fireEvent.change(input, { target: { value: 'sap' } });
+  await act(() => vi.advanceTimersByTimeAsync(300));
+  await act(async () => current.resolve({ data: { items: [{ id: 9, name: 'Sapphire', categoryName: 'Đá', price: 100 }] } }));
+  await act(async () => old.resolve({ data: { items: [{ id: 1, name: 'Ruby cũ', price: 200 }] } }));
+  expect(screen.queryByText('Ruby cũ')).toBeNull();
+  fireEvent.keyDown(input, { key: 'ArrowDown' });
+  expect(input.getAttribute('aria-activedescendant')).toContain('option-0');
+  fireEvent.submit(input.closest('form'));
+  expect(screen.getByTestId('url').textContent).toBe('/product/9');
+});
+it('search Enter, Escape, clear and external URL changes stay in sync', async () => {
+  render(<MemoryRouter initialEntries={['/shop?q=da']}><ProductSearchBar /><Location /></MemoryRouter>);
+  const input = screen.getByRole('combobox'); expect(input.value).toBe('da');
+  fireEvent.focus(input); expect(input.getAttribute('aria-expanded')).toBe('true');
+  fireEvent.keyDown(input, { key: 'Escape' }); expect(input.getAttribute('aria-expanded')).toBe('false');
+  fireEvent.change(input, { target: { value: 'kim cuong' } }); fireEvent.submit(input.closest('form'));
+  expect(screen.getByTestId('url').textContent).toBe('/shop?q=kim%20cuong');
+  fireEvent.click(screen.getByText('URL Ruby')); expect(screen.getByRole('combobox').value).toBe('Ruby');
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa tìm kiếm' })); expect(screen.getByRole('combobox').value).toBe('');
+});
+it('carousel moves exactly one card plus gap and disables both edges', async () => {
+  vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+  vi.stubGlobal('matchMedia', () => ({ matches: true }));
+  const { container } = render(<ProductCarousel products={[{ id: 1, name: 'A' }, { id: 2, name: 'B' }]} />);
+  const track = container.querySelector('.carousel-track');
+  Object.defineProperties(track, { clientWidth: { value: 300 }, scrollWidth: { value: 600 }, scrollLeft: { value: 0, writable: true } });
+  track.style.columnGap = '16px'; track.firstElementChild.getBoundingClientRect = () => ({ width: 200 }); track.scrollBy = vi.fn();
+  fireEvent.scroll(track);
+  expect(screen.getByRole('button', { name: 'Sản phẩm trước' }).disabled).toBe(true);
+  fireEvent.click(screen.getByRole('button', { name: 'Sản phẩm tiếp theo' }));
+  expect(track.scrollBy).toHaveBeenCalledWith({ left: 216, behavior: 'instant' });
+  track.scrollLeft = 300; fireEvent.scroll(track);
+  expect(screen.getByRole('button', { name: 'Sản phẩm tiếp theo' }).disabled).toBe(true);
+  fireEvent.keyDown(track, { key: 'ArrowLeft' }); expect(track.scrollBy).toHaveBeenLastCalledWith({ left: -216, behavior: 'instant' });
+});
+it.each([['/products?q=ruby&page=2', '/shop?q=ruby&page=2'], ['/products/42', '/product/42']])('redirects legacy %s preserving query', (path, target) => {
+  render(<MemoryRouter initialEntries={[path]}><Routes><Route path="/products" element={<LegacyProductRedirect />} /><Route path="/products/:id" element={<LegacyProductRedirect />} /><Route path="*" element={<Location />} /></Routes></MemoryRouter>);
+  expect(screen.getByTestId('url').textContent).toBe(target);
+});
+it('mega menu exposes real tree, closes on Escape/outside and restores trigger focus', async () => {
+  mocks.get.mockResolvedValue({ data: [{ id: 1, name: 'Ruby', children: [{ id: 2, name: 'Nhẫn', children: [] }] }] });
+  render(<MemoryRouter><Header /></MemoryRouter>);
+  const button = screen.getByRole('button', { name: /Thế giới đá quý/ });
+  expect(button.getAttribute('aria-expanded')).toBe('false'); fireEvent.click(button);
+  expect(button.getAttribute('aria-expanded')).toBe('true');
+  expect((await screen.findByRole('link', { name: 'Nhẫn' })).getAttribute('href')).toBe('/shop?category=2');
+  fireEvent.keyDown(document, { key: 'Escape' }); expect(button.getAttribute('aria-expanded')).toBe('false'); expect(document.activeElement).toBe(button);
+  fireEvent.click(button); fireEvent.pointerDown(document.body);
+  await waitFor(() => expect(button.getAttribute('aria-expanded')).toBe('false'));
+});
