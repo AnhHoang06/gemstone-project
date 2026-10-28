@@ -117,7 +117,7 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfi
                 var p = item.Product;
                 if (item.Quantity <= 0 || p.Price < 0) return Conflict(new { message = "Giỏ hàng không hợp lệ." });
                 // Compare the snapshot price/name as well; a concurrent admin edit must not silently alter checkout.
-                var updated = await db.Products.Where(p2 => p2.Id == p.Id && p2.IsActive && p2.Stock >= item.Quantity && p2.Price == p.Price && p2.Name == p.Name)
+                var updated = await db.Products.PubliclyVisible().Where(p2 => p2.Id == p.Id && p2.Stock >= item.Quantity && p2.Price == p.Price && p2.Name == p.Name)
                     .ExecuteUpdateAsync(set => set.SetProperty(p2 => p2.Stock, p2 => p2.Stock - item.Quantity)
                         .SetProperty(p2 => p2.UpdatedAt, DateTime.UtcNow), ct);
                 if (updated != 1) return Conflict(new { message = $"{p.Name} đã thay đổi, ngừng bán hoặc không đủ tồn kho. Vui lòng kiểm tra giỏ." });

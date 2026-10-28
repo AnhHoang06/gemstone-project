@@ -16,7 +16,7 @@ public class WishlistController(GemstoneShopContext db) : ControllerBase
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     private Task<List<WishlistProductDto>> Snapshot(CancellationToken ct) =>
-        db.WishlistItems.AsNoTracking().Where(w => w.UserId == UserId && w.Product.IsActive)
+        db.WishlistItems.AsNoTracking().Where(w => w.UserId == UserId && db.Products.PubliclyVisible().Any(p => p.Id == w.ProductId))
             .OrderByDescending(w => w.CreatedAt).ThenBy(w => w.ProductId)
             .Select(w => new WishlistProductDto
             {
@@ -45,7 +45,7 @@ public class WishlistController(GemstoneShopContext db) : ControllerBase
         var product = await db.Products.AsNoTracking().Where(p => p.Id == productId)
             .Select(p => new { p.IsActive }).SingleOrDefaultAsync(ct);
         if (product == null) return NotFound(new { message = "Không tìm thấy sản phẩm." });
-        if (!product.IsActive) return Conflict(new { message = "Sản phẩm đã ngừng bán." });
+        if (!await db.Products.PubliclyVisible().AnyAsync(p => p.Id == productId, ct)) return Conflict(new { message = "Sản phẩm không còn được bán." });
         if (!await db.WishlistItems.AnyAsync(w => w.UserId == UserId && w.ProductId == productId, ct))
         {
             db.WishlistItems.Add(new WishlistItem { UserId = UserId, ProductId = productId, CreatedAt = DateTime.UtcNow });
