@@ -42,10 +42,11 @@ public class WishlistController(GemstoneShopContext db) : ControllerBase
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await CommerceLock.Acquire(db, $"wishlist:{UserId}", ct);
+        // One round trip: existence (404) and the shared public-visibility rule (409).
         var product = await db.Products.AsNoTracking().Where(p => p.Id == productId)
-            .Select(p => new { p.IsActive }).SingleOrDefaultAsync(ct);
+            .Select(p => new { Visible = db.Products.PubliclyVisible().Any(v => v.Id == p.Id) }).SingleOrDefaultAsync(ct);
         if (product == null) return NotFound(new { message = "Không tìm thấy sản phẩm." });
-        if (!await db.Products.PubliclyVisible().AnyAsync(p => p.Id == productId, ct)) return Conflict(new { message = "Sản phẩm không còn được bán." });
+        if (!product.Visible) return Conflict(new { message = "Sản phẩm không còn được bán." });
         if (!await db.WishlistItems.AnyAsync(w => w.UserId == UserId && w.ProductId == productId, ct))
         {
             db.WishlistItems.Add(new WishlistItem { UserId = UserId, ProductId = productId, CreatedAt = DateTime.UtcNow });

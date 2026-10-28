@@ -52,7 +52,7 @@ public class CartController(GemstoneShopContext db) : ControllerBase
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await CommerceLock.Acquire(db, $"cart:{UserId}", ct);
         var product = await db.Products.AsNoTracking().PubliclyVisible().FirstOrDefaultAsync(p => p.Id == productId, ct);
-        if (product == null || !product.IsActive)
+        if (product == null) // PubliclyVisible already requires product.IsActive
             return Conflict(new { message = "Sản phẩm không còn được bán." });
         var cart = await db.Carts.Include(c => c.CartItems).SingleOrDefaultAsync(c => c.UserId == UserId, ct);
         var item = cart?.CartItems.SingleOrDefault(i => i.ProductId == productId);
