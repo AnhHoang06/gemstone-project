@@ -1,3 +1,4 @@
+import { buildCategoryTree, flattenCategories } from "../../utils/categoryTree";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import api, { resolveImageUrl } from "../../api/api";
@@ -46,14 +47,14 @@ function AdminProductFormContent({ id }) {
     const [loadError, setLoadError] = useState("");
 
     useEffect(() => {
-        api.get("/categories")
+        api.get("/categories?includeInactive=true")
             .then((res) => setCategories(res.data))
             .catch((err) => console.error(err));
     }, []);
 
     useEffect(() => {
         if (!isEditing) return;
-        api.get(`/products/${id}`)
+        api.get(`/products/${id}?includeInactive=true`)
             .then((res) => {
                 const p = res.data;
                 if (!p.isActive) { setLoadError("Sản phẩm không tồn tại hoặc đã bị xóa."); return; }
@@ -236,9 +237,9 @@ function AdminProductFormContent({ id }) {
                     <label>Danh mục</label>
                     <select name="categoryId" value={form.categoryId} onChange={handleChange}>
                         <option value="">-- Chọn danh mục --</option>
-                        {categories.map((c) => (
+                        {flattenCategories(buildCategoryTree(categories)).map((c) => (
                             <option key={c.id} value={c.id}>
-                                {c.name}
+                                {"— ".repeat(c.depth)}{c.name}{!c.isActive ? " (Ẩn)" : ""}
                             </option>
                         ))}
                     </select>

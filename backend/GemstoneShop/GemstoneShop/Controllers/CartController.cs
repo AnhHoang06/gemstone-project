@@ -21,7 +21,7 @@ public class CartController(GemstoneShopContext db) : ControllerBase
             .OrderBy(i => i.Id).Select(i => new
             {
                 i.ProductId, i.Quantity, i.Product.Name, i.Product.Price, i.Product.Stock,
-                i.Product.IsActive,
+                IsActive = db.Products.PubliclyVisible().Any(p => p.Id == i.ProductId),
                 ImageUrl = i.Product.ProductImages.OrderByDescending(p => p.IsPrimary).ThenBy(p => p.SortOrder)
                     .Select(p => p.ImageUrl).FirstOrDefault(),
                 LineTotal = i.Product.Price * i.Quantity
@@ -51,7 +51,7 @@ public class CartController(GemstoneShopContext db) : ControllerBase
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await CommerceLock.Acquire(db, $"cart:{UserId}", ct);
-        var product = await db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId, ct);
+        var product = await db.Products.AsNoTracking().PubliclyVisible().FirstOrDefaultAsync(p => p.Id == productId, ct);
         if (product == null || !product.IsActive)
             return Conflict(new { message = "Sản phẩm không còn được bán." });
         var cart = await db.Carts.Include(c => c.CartItems).SingleOrDefaultAsync(c => c.UserId == UserId, ct);

@@ -11,8 +11,8 @@ import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
 import TestCategories from "./pages/TestCategories";
 import Wishlist from "./pages/Wishlist";
-import ProductListApi from "./pages/ProductListApi";
-import ProductDetailApi from "./pages/ProductDetailApi";
+import LegacyProductRedirect from "./components/LegacyProductRedirect";
+import PlaceholderPage from "./pages/PlaceholderPage";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminProductForm from "./pages/admin/AdminProductForm";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -37,6 +37,7 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
+          {[['/kien-thuc', 'Kiến thức'], ['/lien-he', 'Liên hệ'], ['/hen-lich', 'Hẹn lịch'], ['/ho-tro', 'Hỗ trợ']].map(([path, title]) => <Route key={path} path={path} element={<PlaceholderPage title={title} />} />)}
           <Route path="/shop" element={ <Products /> } />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
@@ -47,8 +48,8 @@ function App() {
           <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           {/* Sản phẩm lấy từ API (feature-product) */}
-          <Route path="/products" element={<ProductListApi />} />
-          <Route path="/products/:id" element={<ProductDetailApi />} />
+          <Route path="/products" element={<LegacyProductRedirect />} />
+          <Route path="/products/:id" element={<LegacyProductRedirect />} />
         </Route>
 
         <Route path="/test-categories" element={<TestCategories />} />

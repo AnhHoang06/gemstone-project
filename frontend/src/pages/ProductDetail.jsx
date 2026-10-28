@@ -6,7 +6,12 @@ import ProductGallery from "../components/ProductGallery";
 import AddToCartButton from "../components/AddToCartButton";
 import FavoriteToggle from "../components/FavoriteToggle";
 
+import ProductSearchBar from "../components/ProductSearchBar";
+
 function ProductDetail() {
+  return <><div className="store-container"><ProductSearchBar /></div><ProductDetailContent /></>;
+}
+function ProductDetailContent() {
   const { id } = useParams();
   const { data, loading, error } = useApiData(`/products/${encodeURIComponent(id)}`);
   if (loading) return <div className="container empty-state" role="status">Đang tải sản phẩm...</div>;

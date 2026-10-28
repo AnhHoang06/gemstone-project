@@ -3,11 +3,14 @@ import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { useWishlist } from "../wishlist/context";
 
+import ProductSearchBar from "../components/ProductSearchBar";
+
 function Wishlist() {
   const { items, loading, busy, error, refresh } = useWishlist();
   useEffect(() => { void refresh(); }, [refresh]);
   return (
     <>
+      <div className="store-container"><ProductSearchBar /></div>
       <section className="page-title">
         <div className="container">
           <h1>Yêu thích</h1>

@@ -11,6 +11,7 @@ import "./styles/commerce.css";
 import WishlistProvider from "./wishlist/WishlistProvider";
 import "./styles/wishlist.css";
 import "./styles/catalog-layout.css";
+import "./styles/theme.css";
 
 validateStoredSession();
 

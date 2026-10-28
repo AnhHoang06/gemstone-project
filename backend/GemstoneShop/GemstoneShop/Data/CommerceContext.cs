@@ -10,6 +10,7 @@ public partial class GemstoneShopContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         ConfigureWishlist(modelBuilder);
+        ConfigureCategoryHierarchy(modelBuilder);
         modelBuilder.Entity<Order>(entity =>
         {
             entity.Property(x => x.PaymentMethod).HasMaxLength(20).IsUnicode(false);

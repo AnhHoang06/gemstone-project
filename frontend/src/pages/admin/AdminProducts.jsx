@@ -15,7 +15,7 @@ function AdminProducts() {
 
     useEffect(() => {
         let active = true;
-        api.get("/products")
+        api.get("/products?includeInactive=true")
             .then((res) => { if (active) setProducts(res.data.filter(product => product.isActive)); })
             .catch((err) => console.error(err))
             .finally(() => { if (active) setLoading(false); });

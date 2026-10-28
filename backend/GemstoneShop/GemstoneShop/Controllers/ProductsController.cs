@@ -1,6 +1,7 @@
 using GemstoneShop.Data;
 using GemstoneShop.DTOs;
 using GemstoneShop.Models;
+using GemstoneShop.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -44,7 +45,7 @@ namespace GemstoneShop.Controllers
                 .Include(p => p.Certificate)
                 .AsQueryable();
 
-            if (!includeInactive) query = query.Where(p => p.IsActive);
+            if (!includeInactive) query = query.PubliclyVisible();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -85,7 +86,7 @@ namespace GemstoneShop.Controllers
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Certificate)
-                .FirstOrDefaultAsync(p => p.Id == id && (includeInactive || p.IsActive));
+                .FirstOrDefaultAsync(p => p.Id == id && (includeInactive || _context.Products.PubliclyVisible().Any(v => v.Id == p.Id)));
 
             if (product == null)
             {
@@ -110,6 +111,7 @@ namespace GemstoneShop.Controllers
             {
                 CategoryId = dto.CategoryId,
                 Name = dto.Name,
+                SearchName = CatalogQueries.NormalizeSearch(dto.Name),
                 Description = dto.Description,
                 Price = dto.Price,
                 Stock = dto.Stock,
@@ -150,6 +152,7 @@ namespace GemstoneShop.Controllers
 
             product.CategoryId = dto.CategoryId;
             product.Name = dto.Name;
+            product.SearchName = CatalogQueries.NormalizeSearch(dto.Name);
             product.Description = dto.Description;
             product.Price = dto.Price;
             product.Stock = dto.Stock;
