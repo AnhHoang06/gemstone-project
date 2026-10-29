@@ -54,6 +54,7 @@ export default function ProductCard({ product, allowCart = true, detailPath = `/
       </p>}
       <div className="product-card__footer">
         <strong className="product-card__price">{formatPrice(product.price)}</strong>
+        {product.stock > 0 && product.stock <= 3 && <span className="product-stock-label">Còn {product.stock} sản phẩm</span>}
         {product.stock === 0 && <span className="product-stock-label">Hết hàng</span>}
       </div>
       <div className={`card-split-actions${allowCart ? '' : ' is-single'}`}>

@@ -5,6 +5,7 @@ export function clearSession() {
 }
 
 function clearCheckoutDrafts() {
+  localStorage.removeItem("gem-aurelia:recent-products");
   for (const key of Object.keys(sessionStorage))
     if (key.startsWith("commerce-checkout:")) sessionStorage.removeItem(key);
 }

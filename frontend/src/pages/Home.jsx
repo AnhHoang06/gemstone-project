@@ -1,3 +1,4 @@
+import { TopRatedProducts } from '../engagement/ProductShelves';
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCarousel from '../components/ProductCarousel';
@@ -29,5 +30,6 @@ export default function Home() {
       <div className="catalog-heading"><h2 id="home-featured-title">Sản phẩm nổi bật</h2><Link to="/shop">Xem tất cả</Link></div>
       {catalog.loading ? <CatalogSkeleton compact /> : catalog.error ? <p role="alert">{catalog.error}</p> : !catalog.data?.items.length ? <p className="empty-state">Chưa có sản phẩm.</p> : <ProductCarousel products={catalog.data.items} />}
     </section>
+    <TopRatedProducts />
   </div></div>;
 }

@@ -1,3 +1,4 @@
+import { OrderReviewLink } from '../engagement/OrderReview';
 import { useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../api/api";
@@ -52,7 +53,7 @@ export default function OrderDetailView({ admin = false }) {
       </section>
       <section className="order-items"><h2>Sản phẩm trong đơn <span className="order-secondary">({order.items.reduce((sum, item) => sum + item.quantity, 0)})</span></h2>
       <div className="table-scroll"><table className="shop-table order-items-table"><thead><tr><th>Sản phẩm</th><th>Số lượng</th><th>Đơn giá lúc đặt</th><th>Thành tiền</th></tr></thead>
-        <tbody>{order.items.map(i => <tr key={i.productId}><td>{i.productName}</td><td>{i.quantity}</td><td>{formatPrice(i.unitPrice)}</td><td>{formatPrice(i.lineTotal)}</td></tr>)}</tbody></table></div>
+        <tbody>{order.items.map(i => <tr key={i.productId}><td>{i.productName}{!admin && order.status === "Completed" && <OrderReviewLink productId={i.productId} />}</td><td>{i.quantity}</td><td>{formatPrice(i.unitPrice)}</td><td>{formatPrice(i.lineTotal)}</td></tr>)}</tbody></table></div>
       <p className="order-detail-total">Tổng: <strong>{formatPrice(order.totalAmount)}</strong></p></section>
       <div className="commerce-actions order-detail-actions">{actions.map(status => <button className="btn btn-outline" key={status} disabled={saving || refreshing}
         onClick={() => status === "Cancelled" ? setConfirmCancel(true) : change(status)}>{saving ? "Đang cập nhật..." : status === "Cancelled" ? "Hủy đơn" : `Chuyển: ${orderLabels[status]}`}</button>)}</div>

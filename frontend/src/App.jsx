@@ -1,3 +1,6 @@
+import AdminReviews from './pages/admin/AdminReviews';
+import OrderReview from './engagement/OrderReview';
+import './styles/engagement.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CartToast from "./components/CartToast";
 import WishlistToast from "./components/WishlistToast";
@@ -45,6 +48,7 @@ function App() {
           <Route path="/payment/:id" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          <Route path="/review-product/:id" element={<ProtectedRoute><OrderReview /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           {/* Sản phẩm lấy từ API (feature-product) */}
@@ -63,6 +67,7 @@ function App() {
         <Route path="/admin/categories" element={<AdminRoute> <AdminCategories /> </AdminRoute>} />
         <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/reviews" element={<AdminRoute><AdminReviews /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetail /></AdminRoute>} />
       </Routes>

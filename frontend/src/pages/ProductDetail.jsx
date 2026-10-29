@@ -1,3 +1,6 @@
+import ProductReviews from '../engagement/ProductReviews';
+import ProductQuestions from '../engagement/ProductQuestions';
+import { RelatedProducts, RecentlyViewed, LowStock } from '../engagement/ProductShelves';
 import { Link, useParams } from "react-router-dom";
 import { formatPrice } from "../utils/formatPrice";
 import useApiData from "../hooks/useApiData";
@@ -55,7 +58,7 @@ function ProductDetailContent() {
               ))}
             </dl>
             {product.certificate?.certificateUrl && <p><a href={product.certificate.certificateUrl} target="_blank" rel="noreferrer">Xem giấy chứng nhận</a></p>}
-            <div className="detail-actions">
+            <LowStock stock={product.stock} /><div className="detail-actions">
               <AddToCartButton product={product} />
               <FavoriteToggle product={product} />
               <Link className="btn btn-ghost" to="/shop">Quay lại Đá quý</Link>
@@ -63,6 +66,7 @@ function ProductDetailContent() {
           </div>
         </div>
       </section>
+      <RelatedProducts productId={product.id} /><ProductReviews productId={product.id} /><ProductQuestions productId={product.id} /><RecentlyViewed productId={product.id} />
     </>
   );
 }
