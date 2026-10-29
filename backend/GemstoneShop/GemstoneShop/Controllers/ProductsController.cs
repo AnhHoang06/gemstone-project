@@ -375,13 +375,18 @@ namespace GemstoneShop.Controllers
 
             var wasPrimary = image.IsPrimary;
 
-            // Xóa file vật lý nếu tồn tại
-            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var relativePath = image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-            var fullPath = Path.Combine(webRoot, relativePath);
-            if (System.IO.File.Exists(fullPath))
+            // Xóa file vật lý chỉ khi đó là ảnh upload riêng của sản phẩm này.
+            // Ảnh dùng chung (vd. /sample-images/...) thuộc repo và có thể đang được sản phẩm khác dùng.
+            var webRoot = Path.GetFullPath(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
+            var ownUploadDir = Path.GetFullPath(Path.Combine(webRoot, "uploads", "products", id.ToString())) + Path.DirectorySeparatorChar;
+            if (image.ImageUrl.StartsWith($"/uploads/products/{id}/", StringComparison.Ordinal))
             {
-                System.IO.File.Delete(fullPath);
+                var relativePath = image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                var fullPath = Path.GetFullPath(Path.Combine(webRoot, relativePath));
+                if (fullPath.StartsWith(ownUploadDir, StringComparison.Ordinal) && System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
             }
 
             _context.ProductImages.Remove(image);
