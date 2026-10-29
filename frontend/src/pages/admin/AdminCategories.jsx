@@ -1,4 +1,5 @@
-import { buildCategoryTree, flattenCategories } from "../../utils/categoryTree";
+import { buildCategoryTree, flattenCategories, MAX_CATEGORY_DEPTH, subtreeHeight } from "../../utils/categoryTree";
+import { invalidateCategoryTree } from "../../hooks/useCategoryTree";
 import { useEffect, useRef, useState } from "react";
 import api from "../../api/api";
 import "../../styles/admin.css";
@@ -74,6 +75,7 @@ function AdminCategories() {
                 await api.post("/categories", payload);
             }
             cancelEdit();
+            invalidateCategoryTree();
             await loadCategories();
         } catch (err) {
             setError(err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.");
@@ -87,6 +89,7 @@ function AdminCategories() {
             await api.delete(`/categories/${id}`);
             setDeleting(null);
             if (editingId === id) cancelEdit();
+            invalidateCategoryTree();
             loadCategories();
         } catch (err) {
             setError(err.response?.data?.message || "Không thể xóa danh mục này.");
@@ -94,7 +97,11 @@ function AdminCategories() {
     }
 
     const rows = flattenCategories(buildCategoryTree(categories));
-    const parents = rows.filter(c => c.depth < 2 && !c.path.some(node => node.id === editingId));
+    // A parent at depth d (0 = level 1) is allowed only if d + 1 + height(edited subtree) <= 3,
+    // and never the edited category itself or one of its descendants.
+    const editingRow = rows.find(c => c.id === editingId);
+    const movingHeight = editingRow ? subtreeHeight(editingRow) : 1;
+    const parents = rows.filter(c => c.depth + 1 + movingHeight <= MAX_CATEGORY_DEPTH && !c.path.some(node => node.id === editingId));
     return (
         <div className="admin-page category-admin-page">
             <h1>Quản lý danh mục</h1>

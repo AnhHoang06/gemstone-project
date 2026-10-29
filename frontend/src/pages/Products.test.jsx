@@ -5,15 +5,18 @@ const mocks = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock('../api/api', () => ({ default: mocks, resolveImageUrl: value => value }));
 vi.mock('../components/ProductCard', () => ({ default: ({ product }) => <h3>{product.name}</h3> }));
 import Products from './Products';
+import { invalidateCategoryTree } from '../hooks/useCategoryTree';
 const tree = [{ id: 1, name: 'Ruby', children: [{ id: 3, name: 'Nhẫn', children: [] }] }, { id: 2, name: 'Sapphire', children: [] }];
 beforeEach(() => {
   vi.resetAllMocks();
+  invalidateCategoryTree();
   Element.prototype.scrollIntoView = vi.fn();
   mocks.get.mockImplementation(path => {
     if (path === '/categories/tree') return Promise.resolve({ data: tree });
     const params = new URLSearchParams(path.split('?')[1]);
     const empty = params.has('minPrice');
-    return Promise.resolve({ data: { items: empty ? [] : [{ id: 1, name: 'Ruby A' }], total: empty ? 0 : 30, page: Number(params.get('page') || 1), totalPages: empty ? 0 : 3 } });
+    const totalPages = empty ? 0 : 3;
+    return Promise.resolve({ data: { items: empty ? [] : [{ id: 1, name: 'Ruby A' }], total: empty ? 0 : 30, page: Math.max(1, Math.min(Number(params.get('page') || 1), totalPages)), totalPages } });
   });
 });
 afterEach(cleanup);
@@ -49,4 +52,28 @@ it('sends price filters to server, validates ranges, and clears all URL state fr
   await screen.findByText('30 sản phẩm');
   expect(screen.getByTestId('url').textContent).toBe('');
   expect(screen.getByLabelText('Giá từ (đ)').value).toBe('');
+});
+it('replaces an out-of-range or invalid page in the URL with the page the API returned', async () => {
+  render(<MemoryRouter initialEntries={['/shop?category=2&page=99']}><Products /><Location /></MemoryRouter>);
+  await waitFor(() => expect(screen.getByTestId('url').textContent).toBe('?category=2&page=3'));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Trang 3', exact: true }).getAttribute('aria-current')).toBe('page'));
+  cleanup();
+  render(<MemoryRouter initialEntries={['/shop?q=da&page=abc']}><Products /><Location /></MemoryRouter>);
+  await waitFor(() => expect(screen.getByTestId('url').textContent).toBe('?q=da'));
+  expect(mocks.get.mock.calls.some(([url]) => url.includes('page=abc'))).toBe(false);
+});
+it('shows "Danh mục không tồn tại" for an unknown or hidden category instead of products', async () => {
+  render(<MemoryRouter initialEntries={['/shop?category=999&q=da']}><Products /><Location /></MemoryRouter>);
+  expect(await screen.findByRole('heading', { level: 1, name: 'Danh mục không tồn tại' })).toBeTruthy();
+  expect(screen.queryByRole('heading', { name: 'Ruby A' })).toBeNull();
+  expect(screen.queryByText('30 sản phẩm')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Xem tất cả đá quý' }));
+  await screen.findByText('30 sản phẩm');
+  expect(screen.getByTestId('url').textContent).toBe('');
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Tất cả đá quý');
+});
+it('treats an unmatched legacy category name as missing', async () => {
+  render(<MemoryRouter initialEntries={['/shop?category=topaz']}><Products /></MemoryRouter>);
+  expect(await screen.findByRole('heading', { level: 1, name: 'Danh mục không tồn tại' })).toBeTruthy();
+  expect(mocks.get.mock.calls.filter(([url]) => url.startsWith('/products/catalog'))).toHaveLength(0);
 });

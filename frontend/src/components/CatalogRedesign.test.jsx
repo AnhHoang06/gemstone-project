@@ -9,9 +9,14 @@ import ProductSearchBar from './ProductSearchBar';
 import ProductCarousel from './ProductCarousel';
 import LegacyProductRedirect from './LegacyProductRedirect';
 import Header from './Header';
+import Footer from './Footer';
+import CatalogPagination from './CatalogPagination';
+import Home from '../pages/Home';
+import Products from '../pages/Products';
+import { invalidateCategoryTree } from '../hooks/useCategoryTree';
 function Location() { const l = useLocation(), navigate = useNavigate(); return <><output data-testid="url">{l.pathname}{l.search}</output><button onClick={() => navigate('/shop?q=Ruby')}>URL Ruby</button></>; }
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
-beforeEach(() => { vi.resetAllMocks(); mocks.get.mockResolvedValue({ data: [] }); });
+beforeEach(() => { vi.resetAllMocks(); invalidateCategoryTree(); Element.prototype.scrollIntoView = vi.fn(); mocks.get.mockResolvedValue({ data: [] }); });
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 it('debounces 300ms, ignores a stale response, and opens a suggestion using the keyboard', async () => {
   vi.useFakeTimers(); const old = deferred(), current = deferred(); mocks.get.mockReturnValueOnce(old.promise).mockReturnValueOnce(current.promise);
@@ -30,15 +35,47 @@ it('debounces 300ms, ignores a stale response, and opens a suggestion using the 
   fireEvent.submit(input.closest('form'));
   expect(screen.getByTestId('url').textContent).toBe('/product/9');
 });
-it('search Enter, Escape, clear and external URL changes stay in sync', async () => {
-  render(<MemoryRouter initialEntries={['/shop?q=da']}><ProductSearchBar /><Location /></MemoryRouter>);
+it('search on /shop merges q into the current filters, drops page, and × removes q from the URL', async () => {
+  render(<MemoryRouter initialEntries={['/shop?q=da&category=2&page=3']}><ProductSearchBar /><Location /></MemoryRouter>);
   const input = screen.getByRole('combobox'); expect(input.value).toBe('da');
+  expect(input.getAttribute('aria-controls')).toBeNull();
   fireEvent.focus(input); expect(input.getAttribute('aria-expanded')).toBe('true');
+  expect(document.getElementById(input.getAttribute('aria-controls'))?.getAttribute('role')).toBe('listbox');
   fireEvent.keyDown(input, { key: 'Escape' }); expect(input.getAttribute('aria-expanded')).toBe('false');
+  expect(input.getAttribute('aria-controls')).toBeNull();
   fireEvent.change(input, { target: { value: 'kim cuong' } }); fireEvent.submit(input.closest('form'));
-  expect(screen.getByTestId('url').textContent).toBe('/shop?q=kim%20cuong');
+  expect(screen.getByTestId('url').textContent).toBe('/shop?q=kim+cuong&category=2');
   fireEvent.click(screen.getByText('URL Ruby')); expect(screen.getByRole('combobox').value).toBe('Ruby');
   fireEvent.click(screen.getByRole('button', { name: 'Xóa tìm kiếm' })); expect(screen.getByRole('combobox').value).toBe('');
+  expect(screen.getByTestId('url').textContent).toBe('/shop');
+  expect(document.activeElement).toBe(screen.getByRole('combobox'));
+});
+it('search outside /shop starts a new /shop?q= search and × only clears the input', () => {
+  render(<MemoryRouter initialEntries={['/product/5']}><ProductSearchBar /><Location /></MemoryRouter>);
+  const input = screen.getByRole('combobox');
+  fireEvent.change(input, { target: { value: 'kim' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa tìm kiếm' }));
+  expect(screen.getByTestId('url').textContent).toBe('/product/5');
+  fireEvent.change(input, { target: { value: 'kim cuong' } }); fireEvent.submit(input.closest('form'));
+  expect(screen.getByTestId('url').textContent).toBe('/shop?q=kim%20cuong');
+});
+it('suggestions bold every query token and show a placeholder thumbnail when there is no image', async () => {
+  vi.useFakeTimers();
+  mocks.get.mockResolvedValue({ data: { items: [{ id: 3, name: 'Nhẫn Kim cương Three-stone', categoryName: 'Nhẫn', price: 100, imageUrl: null }] } });
+  const { container } = render(<MemoryRouter><ProductSearchBar /></MemoryRouter>);
+  fireEvent.change(screen.getByRole('combobox'), { target: { value: 'nhan three' } });
+  await act(() => vi.advanceTimersByTimeAsync(300));
+  expect([...container.querySelectorAll('[role=option] strong')].map(node => node.textContent)).toEqual(['Nhẫn', 'Three']);
+  expect(container.querySelector('[role=option] .search-thumb .product-placeholder')).not.toBeNull();
+});
+it('suggestions say when no product name matches and still offer "view all results"', async () => {
+  vi.useFakeTimers();
+  mocks.get.mockResolvedValue({ data: { items: [] } });
+  render(<MemoryRouter><ProductSearchBar /></MemoryRouter>);
+  fireEvent.change(screen.getByRole('combobox'), { target: { value: 'nhan halo' } });
+  await act(() => vi.advanceTimersByTimeAsync(300));
+  expect(screen.getByRole('status').textContent).toContain('Không có gợi ý theo tên');
+  expect(screen.getByRole('option', { name: /Xem tất cả kết quả cho ‘nhan halo’/ })).toBeTruthy();
 });
 it('carousel moves exactly one card plus gap and disables both edges', async () => {
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
@@ -59,14 +96,70 @@ it.each([['/products?q=ruby&page=2', '/shop?q=ruby&page=2'], ['/products/42', '/
   render(<MemoryRouter initialEntries={[path]}><Routes><Route path="/products" element={<LegacyProductRedirect />} /><Route path="/products/:id" element={<LegacyProductRedirect />} /><Route path="*" element={<Location />} /></Routes></MemoryRouter>);
   expect(screen.getByTestId('url').textContent).toBe(target);
 });
-it('mega menu exposes real tree, closes on Escape/outside and restores trigger focus', async () => {
-  mocks.get.mockResolvedValue({ data: [{ id: 1, name: 'Ruby', children: [{ id: 2, name: 'Nhẫn', children: [] }] }] });
+const megaTree = [{ id: 1, name: 'Ruby', children: [{ id: 2, name: 'Nhẫn', children: [{ id: 5, name: 'Nhẫn Halo', children: [] }] }] }, { id: 3, name: 'Sapphire', children: [] }];
+it('mega menu lists level 1, drills into one tree, closes on Escape/outside and restores trigger focus', async () => {
+  mocks.get.mockResolvedValue({ data: megaTree });
   render(<MemoryRouter><Header /></MemoryRouter>);
   const button = screen.getByRole('button', { name: /Thế giới đá quý/ });
-  expect(button.getAttribute('aria-expanded')).toBe('false'); fireEvent.click(button);
-  expect(button.getAttribute('aria-expanded')).toBe('true');
-  expect((await screen.findByRole('link', { name: 'Nhẫn' })).getAttribute('href')).toBe('/shop?category=2');
+  expect(button.getAttribute('aria-expanded')).toBe('false'); expect(button.getAttribute('aria-controls')).toBeNull();
+  fireEvent.click(button);
+  expect(button.getAttribute('aria-expanded')).toBe('true'); expect(button.getAttribute('aria-controls')).toBe('gem-mega-menu');
+  expect((await screen.findByRole('link', { name: 'Sapphire' })).getAttribute('href')).toBe('/shop?category=3');
+  fireEvent.click(await screen.findByRole('button', { name: /^Ruby/ }));
+  expect(screen.getByRole('heading', { name: 'Ruby' })).toBeTruthy();
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: /Tất cả danh mục/ }));
+  expect(screen.getByRole('link', { name: 'Nhẫn' }).getAttribute('href')).toBe('/shop?category=2');
+  expect(screen.getByRole('link', { name: 'Nhẫn Halo' }).getAttribute('href')).toBe('/shop?category=5');
+  expect(screen.getByRole('link', { name: 'Xem tất cả Ruby' }).getAttribute('href')).toBe('/shop?category=1');
+  const group = screen.getByRole('button', { name: 'Nhóm Nhẫn' });
+  expect(group.getAttribute('aria-expanded')).toBe('true'); fireEvent.click(group);
+  expect(group.getAttribute('aria-expanded')).toBe('false'); expect(screen.queryByRole('link', { name: 'Nhẫn Halo' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: /Tất cả danh mục/ }));
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: /^Ruby/ }));
   fireEvent.keyDown(document, { key: 'Escape' }); expect(button.getAttribute('aria-expanded')).toBe('false'); expect(document.activeElement).toBe(button);
   fireEvent.click(button); fireEvent.pointerDown(document.body);
   await waitFor(() => expect(button.getAttribute('aria-expanded')).toBe('false'));
+});
+it('mega menu trigger shows the current level-1 branch on /shop and opens straight into its tree', async () => {
+  mocks.get.mockResolvedValue({ data: megaTree });
+  render(<MemoryRouter initialEntries={['/shop?category=5']}><Header /></MemoryRouter>);
+  const button = await screen.findByRole('button', { name: /^Thế giới đá quý:\s*Ruby$/ });
+  expect(button.textContent).toContain('Ruby');
+  fireEvent.click(button);
+  expect(screen.getByRole('link', { name: 'Nhẫn Halo' }).getAttribute('aria-current')).toBe('page');
+});
+it('header account entries are labelled icons and the cart badge stays readable', () => {
+  mocks.commerce = { token: 'jwt', cart: { totalQuantity: 3 } };
+  localStorage.setItem('role', 'Admin');
+  render(<MemoryRouter><Header /></MemoryRouter>);
+  for (const name of ['Tài khoản', 'Yêu thích', 'Đơn hàng', 'Quản trị']) expect(screen.getByRole('link', { name })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Giỏ hàng: 3 sản phẩm' }).getAttribute('href')).toBe('/cart');
+  expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeTruthy();
+  localStorage.removeItem('role'); mocks.commerce = { token: null };
+});
+it('fetches the category tree once for Header, Home and /shop and refetches after invalidation', async () => {
+  vi.stubGlobal('ResizeObserver', undefined);
+  let version = 1;
+  mocks.get.mockImplementation(path => Promise.resolve({ data: path === '/categories/tree' ? [{ id: 1, name: `Ruby v${version}`, children: [] }] : { items: [], total: 0, page: 1, totalPages: 0 } }));
+  render(<MemoryRouter><Header /><Home /><Products /></MemoryRouter>);
+  expect((await screen.findAllByRole('link', { name: 'Ruby v1' })).length).toBeGreaterThan(0);
+  expect(mocks.get.mock.calls.filter(([path]) => path === '/categories/tree')).toHaveLength(1);
+  version = 2; await act(async () => { invalidateCategoryTree(); });
+  expect((await screen.findAllByRole('link', { name: 'Ruby v2' })).length).toBeGreaterThan(0);
+  expect(mocks.get.mock.calls.filter(([path]) => path === '/categories/tree')).toHaveLength(2);
+});
+it('pagination shows plain numerals with gaps and marks the current page', () => {
+  const onChange = vi.fn();
+  const { container } = render(<CatalogPagination page={7} totalPages={36} onChange={onChange} />);
+  expect(screen.getAllByRole('button', { name: /^Trang \d+$/ }).map(button => button.textContent)).toEqual(['1', '5', '6', '7', '8', '9', '36']);
+  expect(container.querySelectorAll('.pagination-gap')).toHaveLength(2);
+  expect(screen.getByRole('button', { name: 'Trang 7' }).getAttribute('aria-current')).toBe('page');
+  fireEvent.click(screen.getByRole('button', { name: 'Trang tiếp' })); expect(onChange).toHaveBeenCalledWith(8);
+});
+it('footer hides columns without verified data and keeps the real payment line', () => {
+  render(<MemoryRouter><Footer /></MemoryRouter>);
+  expect(screen.queryByRole('heading', { name: 'Thông tin liên hệ' })).toBeNull();
+  expect(screen.queryByRole('heading', { name: 'Mạng xã hội' })).toBeNull();
+  expect(screen.getAllByRole('heading').map(heading => heading.textContent)).toEqual(['Liên kết', 'Chăm sóc khách hàng']);
+  expect(screen.getByText('Thanh toán khi nhận hàng (COD) · Chuyển khoản ngân hàng')).toBeTruthy();
 });

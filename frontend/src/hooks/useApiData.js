@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import api from "../api/api";
 import { apiError } from "../auth/session";
 
+// Pass a null path to skip the request (returns an idle, non-loading result).
 export default function useApiData(path) {
-  const [result, setResult] = useState({ path: null, data: null, error: "", loading: true });
+  const [result, setResult] = useState({ path: undefined, data: null, error: "", loading: true });
   useEffect(() => {
+    if (!path) return;
     let active = true;
     api.get(path).then(({ data }) => {
       if (active) setResult({ path, data, error: "", loading: false });
@@ -14,5 +16,6 @@ export default function useApiData(path) {
     });
     return () => { active = false; };
   }, [path]);
+  if (!path) return { data: null, error: "", loading: false };
   return result.path === path ? result : { data: null, error: "", loading: true };
 }

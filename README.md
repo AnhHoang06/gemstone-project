@@ -1,7 +1,7 @@
 # Gem Aurelia — Gemstone Shop
 
 ASP.NET Core 8 + EF Core Database First + SQL Server; React 19 + Vite + Bootstrap; JWT and SignalR.
-Use `develop` as the integration base, not the legacy `main` branch. Catalog redesign is on `feature/ui-catalog-redesign` pending review.
+Use `develop` as the integration base, not the legacy `main` branch.
 
 ## Local setup
 
@@ -20,7 +20,7 @@ foreach ($script in @('Person3.sql', 'Wishlist.sql', 'Payment.sql', 'CategoryHie
 }
 ```
 
-These scripts are repeatable. `CategoryHierarchy.sql` retains existing categories as root nodes, adds parent/sort fields, and replaces global name uniqueness with sibling uniqueness. `ProductSearch.sql` adds/backfills normalized search names. No database or historical order data is recreated. Stop the application during schema deployment and start the matching backend afterward.
+These scripts are repeatable. `CategoryHierarchy.sql` retains existing categories as root nodes, adds parent/sort fields, and replaces global name uniqueness with sibling uniqueness. `ProductSearch.sql` adds the normalized search-name column and fills rows where it is still empty; the API also corrects missing or outdated search names at startup. No database or historical order data is recreated. Stop the application during schema deployment and start the matching backend afterward.
 
 4. Start backend (local HTTP example; Development loads User Secrets):
 
@@ -68,4 +68,4 @@ node tests/payment.integration.mjs
 node tests/catalog.integration.mjs
 ```
 
-Integration suites require the local backend and matching local database. Defaults: API `http://localhost:5113`, SQL server `.\SQLEXPRESS`, DB `GemstoneShop`, Windows authentication. Override `PERSON3_API_URL`, `PERSON3_SQL_SERVER`, `PERSON3_SQL_DATABASE` together as needed. Use only a disposable/development database: tests create and clean temporary users/products/orders and exercise failure triggers and schema constraints. They are not production health checks.
+Integration suites require the local backend and matching local database. Defaults: API `http://localhost:5113`, SQL server `.\SQLEXPRESS`, DB `GemstoneShop`, Windows authentication. Override `PERSON3_API_URL`, `PERSON3_SQL_SERVER`, `PERSON3_SQL_DATABASE` together as needed. `tests/catalog.integration.mjs` reads `CATALOG_API_URL`, `CATALOG_SQL_SERVER`, `CATALOG_SQL_DATABASE` (falling back to the `PERSON3_*` values); its restart check starts a second API from the built `bin/Debug/<tfm>/GemstoneShop.dll` on `CATALOG_RESTART_URL` (default `http://localhost:5115`, override the DLL with `CATALOG_BACKEND_DLL`) and needs the same connection string and `Jwt:Key` in the environment — set `CATALOG_SKIP_RESTART=1` to skip it. Use only a disposable/development database: tests create and clean temporary users/products/orders and exercise failure triggers and schema constraints. They are not production health checks.

@@ -118,6 +118,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Repair Products.SearchName for rows written outside the API (SQL inserts/renames). Logs and continues on failure.
+await SearchNameBackfill.RunAsync(app.Services, app.Logger);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

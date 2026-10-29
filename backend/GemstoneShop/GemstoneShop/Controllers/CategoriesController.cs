@@ -4,6 +4,7 @@ using GemstoneShop.Models;
 using GemstoneShop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace GemstoneShop.Controllers;
@@ -43,7 +44,7 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
     [Authorize(Roles = "Admin"), HttpPost]
     public Task<IActionResult> Create(CategoryCreateDto dto, CancellationToken ct) => Save(null, dto, ct);
     [Authorize(Roles = "Admin"), HttpPut("{id:int}")]
-    public Task<IActionResult> Update(int id, CategoryCreateDto dto, CancellationToken ct) => Save(id, dto, ct);
+    public Task<IActionResult> Update(int id, CategoryUpdateDto dto, CancellationToken ct) => Save(id, dto.ToCreateDto(), ct);
 
     private async Task<IActionResult> Save(int? id, CategoryCreateDto dto, CancellationToken ct)
     {
@@ -54,8 +55,11 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
         var category = id.HasValue ? all.SingleOrDefault(c => c.Id == id) : new Category { CreatedAt = DateTime.UtcNow };
         if (category == null) return NotFound(new { message = "Không tìm thấy danh mục." });
         if (dto.ParentId.HasValue && !all.Any(c => c.Id == dto.ParentId)) return BadRequest(new { message = "Danh mục cha không tồn tại." });
-        if (await db.Categories.AnyAsync(c => c.ParentId == dto.ParentId && c.Name == dto.Name.Trim() && (!id.HasValue || c.Id != id), ct))
-            return BadRequest(new { message = "Tên danh mục đã tồn tại trong cùng danh mục cha." });
+        var name = dto.Name.Trim();
+        // Ask SQL Server so the check uses the column collation, exactly like UQ_Categories_ParentId_Name.
+        var selfId = id ?? 0;
+        if (await db.Categories.AnyAsync(c => c.ParentId == dto.ParentId && c.Id != selfId && c.Name == name, ct))
+            return DuplicateName();
         var candidate = id ?? -1;
         var parents = all.ToDictionary(c => c.Id, c => c.ParentId);
         parents[candidate] = dto.ParentId;
@@ -70,10 +74,15 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
                 current = parents[current.Value];
             }
         }
-        category.Name = dto.Name.Trim(); category.Description = dto.Description;
+        category.Name = name; category.Description = dto.Description;
         category.IsActive = dto.IsActive; category.ParentId = dto.ParentId; category.SortOrder = dto.SortOrder;
         if (!id.HasValue) db.Categories.Add(category);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            // Safety net: the unique index is the final authority on sibling names.
+            return DuplicateName();
+        }
         await tx.CommitAsync(ct);
         return id.HasValue ? NoContent() : CreatedAtAction(nameof(GetById), new { id = category.Id }, ToDto(category));
     }
@@ -90,6 +99,9 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
         db.Categories.Remove(category); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return NoContent();
     }
+    private BadRequestObjectResult DuplicateName() =>
+        BadRequest(new { message = "Tên danh mục đã tồn tại trong cùng danh mục cha." });
+
     private static CategoryDto ToDto(Category c) => new() { Id = c.Id, Name = c.Name, Description = c.Description, IsActive = c.IsActive,
         CreatedAt = c.CreatedAt, ParentId = c.ParentId, SortOrder = c.SortOrder };
 }
