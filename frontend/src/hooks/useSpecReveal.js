@@ -35,7 +35,8 @@ export default function useSpecReveal() {
   useEffect(() => {
     if (!visible) return undefined;
     const onKeyDown = event => {
-      if (event.key !== 'Escape') return;
+      // Esc already handled by an open menu/combobox should not also dismiss this card.
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
       setPinned(false);
       setDismissed(true);
     };
