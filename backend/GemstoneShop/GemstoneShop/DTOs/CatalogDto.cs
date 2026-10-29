@@ -13,5 +13,6 @@ public class CatalogQuery
     [Range(1, 48)] public int PageSize { get; set; } = 12;
 }
 
+// Card fields; Color/Clarity/Cut feed the hover spec panel.
 public record CatalogProductDto(int Id, string Name, int CategoryId, string CategoryName, decimal Price,
-    int Stock, decimal? Carat, string? Origin, string? CertificateAuthority, string? ImageUrl);
+    int Stock, decimal? Carat, string? Color, string? Clarity, string? Cut, string? Origin, string? CertificateAuthority, string? ImageUrl);

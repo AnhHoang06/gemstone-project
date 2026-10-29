@@ -10,7 +10,10 @@ public class WishlistProductDto
     public int Stock { get; set; }
     public decimal? Carat { get; set; }
     public string? Color { get; set; }
+    public string? Clarity { get; set; }
+    public string? Cut { get; set; }
     public string? Origin { get; set; }
+    public string? CertificateAuthority { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
 }

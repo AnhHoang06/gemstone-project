@@ -7,6 +7,14 @@
   --catalog-border:#e2d6bd; --catalog-heading:'Oswald','Be Vietnam Pro',sans-serif;
   --metal-gold:linear-gradient(90deg,#c29a50 0%,#d9bc7c 16%,#efdcaa 38%,#f8ebc6 50%,#ecd7a2 62%,#d6b774 84%,#c09850 100%);
   --metal-gold-soft:linear-gradient(180deg,#f3e2b4 0%,#e2c688 55%,#d3b16c 100%);
+  /* light marble: soft clouding + a few thin, blurred veins (shared by real photos and the placeholder) */
+  --marble-light:
+    radial-gradient(40% 18% at 28% 34%, #d9d9dc80, transparent 70%),
+    radial-gradient(35% 14% at 74% 70%, #d4d4d870, transparent 70%),
+    linear-gradient(124deg, transparent 0 30%, #b9b9be1f 31.5%, #a9a9ae29 32.2%, #c5c5ca17 33.5%, transparent 36% 61%, #b0b0b521 62.4%, transparent 64.5%),
+    linear-gradient(28deg, transparent 0 46%, #c0c0c41a 47.5%, #b4b4b91f 48%, transparent 50.5%),
+    linear-gradient(160deg, transparent 0 70%, #c8c8cc1a 71.5%, transparent 74%),
+    radial-gradient(110% 85% at 30% 18%, #ffffff 0%, #f7f7f6 40%, #ececea 78%, #e4e3e0 100%);
 }
 
 /* Page background: layered "silk" folds in cream and gold, CSS only (no images). */
@@ -149,22 +157,17 @@
 @media (min-width:1200px) { .product-carousel.has-controls { padding-inline:0; } .carousel-prev { left:-48px; } .carousel-next { right:-48px; } }
 
 /* Product cards. */
-.site-shell .product-card { position:relative; display:flex; flex-direction:column; min-width:0; height:100%; overflow:hidden; background:#fff; border:1px solid #7a5a2224; border-radius:10px; box-shadow:0 2px 8px #3a28100f; transition:box-shadow .18s ease; }
+.site-shell .product-card { position:relative; display:flex; flex-direction:column; min-width:0; height:100%; overflow:hidden; background:#fff; border:1px solid #7a5a2224; border-radius:10px; box-shadow:0 2px 8px #3a28100f; transition:box-shadow .18s ease; --card-media-radius:0; }
 .site-shell .product-card:hover { transform:none; border-color:#7a5a2238; box-shadow:0 8px 20px #3a281021; }
-.site-shell .product-card__media { position:relative; display:block; text-decoration:none; aspect-ratio:1; height:auto; min-height:0; margin:0; padding:0; overflow:hidden; background:#f3f2ef; border:0; }
+.site-shell .product-card__visual { position:relative; }
+.site-shell .product-card__media { position:relative; z-index:0; display:block; text-decoration:none; aspect-ratio:1; height:auto; min-height:0; margin:0; padding:0; overflow:hidden; background:#f3f2ef; background:var(--marble-light); border:0; border-radius:var(--card-media-radius); }
 .site-shell .product-card__media::before,.site-shell .product-card__media::after { display:none; }
-.site-shell .product-card__media img { width:100%; height:100%; object-fit:contain; }
+/* Real photos / sample SVG gems: whole stone visible, breathing room on the marble. */
+.site-shell .product-card__media img { display:block; box-sizing:border-box; width:100%; height:100%; padding:11%; object-fit:contain; object-position:center; background:transparent; }
 .product-placeholder { display:flex; width:100%; height:100%; min-height:100%; flex-direction:column; align-items:center; justify-content:center; gap:8px; font-size:12px; color:#5c564c; text-decoration:none;
-  /* light marble: soft clouding + a few thin, blurred veins */
-  background:
-    radial-gradient(40% 18% at 28% 34%, #d9d9dc80, transparent 70%),
-    radial-gradient(35% 14% at 74% 70%, #d4d4d870, transparent 70%),
-    linear-gradient(124deg, transparent 0 30%, #b9b9be1f 31.5%, #a9a9ae29 32.2%, #c5c5ca17 33.5%, transparent 36% 61%, #b0b0b521 62.4%, transparent 64.5%),
-    linear-gradient(28deg, transparent 0 46%, #c0c0c41a 47.5%, #b4b4b91f 48%, transparent 50.5%),
-    linear-gradient(160deg, transparent 0 70%, #c8c8cc1a 71.5%, transparent 74%),
-    radial-gradient(110% 85% at 30% 18%, #ffffff 0%, #f7f7f6 40%, #ececea 78%, #e4e3e0 100%); }
+  background:#f3f2ef; background:var(--marble-light); }
 .product-placeholder svg { opacity:.42; }
-.site-shell .product-card__favorite { position:absolute; top:8px; right:8px; z-index:2; }
+.site-shell .product-card__favorite { position:absolute; top:8px; right:8px; z-index:3; }
 .site-shell .product-card__favorite .favorite-toggle { width:30px; height:30px; border-radius:50%; background:#ffffffeb; border:1px solid #7a5a2240; color:var(--gold-700); }
 .site-shell .product-card__favorite .favorite-toggle svg { width:16px; height:16px; }
 .site-shell .product-card .favorite-tooltip { top:calc(100% + 6px); bottom:auto; left:auto; right:0; transform:none; background:var(--ink); }
@@ -180,7 +183,8 @@
 .site-shell .card-outline-button:disabled { opacity:.6; }
 .site-shell .product-card--compact .notice-error { display:block; margin-top:4px; font-size:11px; }
 /* catalog (/shop, /wishlist) */
-.site-shell .product-card--catalog .product-card__media { margin:6px 6px 0; border-radius:7px; }
+.site-shell .product-card--catalog { --card-media-radius:7px; }
+.site-shell .product-card--catalog .product-card__visual { margin:6px 6px 0; }
 .site-shell .product-card--catalog .product-card__body { padding:8px 10px 10px; gap:4px; }
 .product-card__carat { font-size:11px; font-weight:400; color:var(--muted); white-space:nowrap; }
 .site-shell .product-card__provenance { margin:0; font-size:10.5px; line-height:1.45; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -198,6 +202,38 @@
 .card-split-cart:disabled { color:#4f4636; opacity:1; cursor:default; background:#fff8e64d; }
 .site-shell .card-split-actions :is(a,button):focus-visible { outline:2px solid var(--ink); outline-offset:-3px; }
 .card-split-cart-wrap .notice-error { position:absolute; top:calc(100% + 4px); right:0; z-index:3; width:max-content; max-width:180px; padding:4px 6px; font-size:11px; background:#fff; border:1px solid #d8b7af; border-radius:4px; }
+/* Spec overlay: covers the image only (heart and card actions stay on top / outside). Kept in the DOM and hidden
+   with opacity, never display:none / visibility:hidden, so screen readers read it without hovering. */
+.site-shell .product-card__specs { position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; gap:6px; overflow:hidden; padding:10px 12px 12px;
+  border-radius:var(--card-media-radius); background:#fffdf8f5; color:var(--ink); box-shadow:inset 0 0 0 1px #7a5a2226;
+  opacity:0; transform:translateY(6px); pointer-events:none; transition:opacity .14s ease-out, transform .14s ease-out; }
+@supports ((-webkit-backdrop-filter:blur(2px)) or (backdrop-filter:blur(2px))) { .site-shell .product-card__specs { background:#fffdf8eb; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); } }
+.site-shell .product-card.is-specs-visible .product-card__specs { opacity:1; transform:none; }
+/* Pinned by the touch toggle: the panel takes taps (tap = close) so a tap never falls through to the image link. */
+.site-shell .product-card.is-specs-pinned .product-card__specs { pointer-events:auto; overflow-y:auto; }
+.site-shell .product-card__specs-title { display:flex; flex:none; align-items:center; min-height:28px; padding-right:34px; font:500 13px/1.2 var(--catalog-heading); text-transform:uppercase; letter-spacing:.06em; color:var(--gold-700); border-bottom:1px solid #7a5a2233; }
+.site-shell .product-card__specs dl { display:grid; grid-template-columns:auto minmax(0,1fr); gap:3px 10px; margin:0; font-size:12px; line-height:1.3; }
+.site-shell .product-card__specs dl > div { display:contents; }
+.site-shell .product-card__specs dt { margin:0; font-weight:400; color:var(--muted); white-space:nowrap; }
+.site-shell .product-card__specs dd { margin:0; font-weight:600; color:var(--ink); text-align:right; overflow-wrap:anywhere; }
+.site-shell .product-card__specs-empty { margin:auto 0; font-size:12px; color:var(--muted); text-align:center; }
+/* Touch toggle: only shown on devices that cannot hover; sits top-left (heart is top-right) and doubles as the panel title. */
+.site-shell .product-card__specs-toggle { position:absolute; left:8px; top:8px; z-index:2; display:none; align-items:center; gap:4px; min-height:28px; padding:3px 10px 3px 8px;
+  border:1px solid #7a5a2259; border-radius:999px; background:#ffffffeb; color:var(--gold-700); font:500 11.5px/1.2 var(--gs-font-body); box-shadow:0 1px 3px #3a281014; }
+.site-shell .product-card__specs-toggle[aria-expanded="true"] { background:var(--cream-100); border-color:var(--gold-700); color:var(--ink); }
+/* Narrow cards (4-up grid, phones): "Nhãn: giá trị" lines that wrap naturally instead of two cramped columns. */
+.site-shell .product-card__visual { container-type:inline-size; }
+@container (max-width:230px) {
+  .site-shell .product-card__specs dl { display:block; }
+  .site-shell .product-card__specs dl > div { display:block; margin-bottom:3px; }
+  .site-shell .product-card__specs dt,.site-shell .product-card__specs dd { display:inline; white-space:normal; text-align:left; }
+  .site-shell .product-card__specs dt::after { content:': '; }
+}
+@media (hover:none) {
+  .site-shell .product-card__specs-toggle { display:inline-flex; }
+  .site-shell .product-card__specs { padding-top:44px; }
+  .site-shell .product-card__specs-title { display:none; }
+}
 
 /* Search. */
 .product-search { display:flex; align-items:center; position:relative; width:min(640px,100%); margin:24px auto 20px; border:1px solid var(--gold-500); border-radius:28px; background:white; min-height:46px; padding:4px 6px 4px 16px; gap:8px; z-index:10; box-shadow:0 2px 8px #5a3f1414; }
@@ -337,6 +373,10 @@
   .product-carousel > button { width:28px; height:28px; }
   .catalog-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .site-shell .product-card--catalog .product-card__body { padding:8px 8px 9px; }
+  .site-shell .product-card__specs { gap:4px; padding-inline:9px; padding-bottom:8px; }
+  .site-shell .product-card__specs-title { min-height:26px; font-size:12px; }
+  .site-shell .product-card__specs dl { font-size:11px; }
+  .site-shell .product-card__media img { padding:9%; }
   .site-shell .product-card h3 { font-size:13px; }
   .site-shell .product-card--compact h3 { font-size:13px; }
   .site-shell .product-card__footer .product-card__price { font-size:13.5px; }
@@ -353,6 +393,7 @@
   .product-detail-page .detail-grid { padding:12px; gap:20px; }
   .category-admin-page .form-row { display:flex; flex-direction:column; align-items:stretch; }.category-admin-page .form-row-checkbox { display:block; }.category-admin-page .form-row label { min-width:0; }
 }
-@media (prefers-reduced-motion:reduce) { .carousel-track { scroll-behavior:auto; } .site-shell .product-card { transition:none; } .store-drawer[open],.catalog-filter-drawer[open] { animation:none !important; } }
+@media (hover:none) and (max-width:767px) { .site-shell .product-card__specs { padding-top:42px; } }
+@media (prefers-reduced-motion:reduce) { .carousel-track { scroll-behavior:auto; } .site-shell .product-card,.site-shell .product-card__specs { transition:none; } .site-shell .product-card__specs { transform:none; } .store-drawer[open],.catalog-filter-drawer[open] { animation:none !important; } }
 @keyframes catalog-drawer-enter { from { transform:translateX(-24px); opacity:0; } to { transform:translateX(0); opacity:1; } }
 .store-drawer[open],.catalog-filter-drawer[open] { animation:catalog-drawer-enter .16s ease-out; }

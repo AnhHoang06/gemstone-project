@@ -22,7 +22,8 @@ public class WishlistController(GemstoneShopContext db) : ControllerBase
             {
                 Id = w.ProductId, Name = w.Product.Name, CategoryName = w.Product.Category.Name,
                 Price = w.Product.Price, Stock = w.Product.Stock, Carat = w.Product.Carat,
-                Color = w.Product.Color, Origin = w.Product.Origin, IsActive = w.Product.IsActive,
+                Color = w.Product.Color, Clarity = w.Product.Clarity, Cut = w.Product.Cut, Origin = w.Product.Origin,
+                CertificateAuthority = w.Product.Certificate == null ? null : w.Product.Certificate.Authority, IsActive = w.Product.IsActive,
                 ImageUrl = w.Product.ProductImages.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.SortOrder).ThenBy(i => i.Id)
                     .Select(i => i.ImageUrl).FirstOrDefault()
             }).ToListAsync(ct);

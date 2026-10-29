@@ -31,7 +31,7 @@ public class CatalogController(GemstoneShopContext db) : ControllerBase
             _ => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
         };
         var items = total == 0 ? new List<CatalogProductDto>() : await sorted.Skip((page - 1) * request.PageSize).Take(request.PageSize).Select(p =>
-            new CatalogProductDto(p.Id, p.Name, p.CategoryId, p.Category.Name, p.Price, p.Stock, p.Carat, p.Origin,
+            new CatalogProductDto(p.Id, p.Name, p.CategoryId, p.Category.Name, p.Price, p.Stock, p.Carat, p.Color, p.Clarity, p.Cut, p.Origin,
                 p.Certificate == null ? null : p.Certificate.Authority,
                 p.ProductImages.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.SortOrder).ThenBy(i => i.Id).Select(i => i.ImageUrl).FirstOrDefault())).ToListAsync(ct);
         return Ok(new { items, total, page, request.PageSize, totalPages });
