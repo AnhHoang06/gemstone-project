@@ -10,6 +10,7 @@ public partial class GemstoneShopContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         ConfigureWishlist(modelBuilder);
+        ConfigureReviews(modelBuilder);
         ConfigureCategoryHierarchy(modelBuilder);
         modelBuilder.Entity<Order>(entity =>
         {
