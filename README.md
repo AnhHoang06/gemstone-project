@@ -22,6 +22,20 @@ foreach ($script in @('Person3.sql', 'Wishlist.sql', 'Payment.sql', 'CategoryHie
 
 These scripts are repeatable. `CategoryHierarchy.sql` retains existing categories as root nodes, adds parent/sort fields, and replaces global name uniqueness with sibling uniqueness. `ProductSearch.sql` adds the normalized search-name column and fills rows where it is still empty; the API also corrects missing or outdated search names at startup. No database or historical order data is recreated. Stop the application during schema deployment and start the matching backend afterward.
 
+Optional demo data (development/demo machines only, never production) — run after the scripts above:
+
+```powershell
+sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -i "$schema/SampleData.sql"
+```
+
+It adds a 3-level category tree (the existing Ruby/Sapphire/Emerald/Diamond/Amethyst roots plus Aquamarine and Garnet), about 30 Vietnamese sample products with specs, `GA-MAU-` sample certificates, and original SVG illustrations served from `wwwroot/sample-images/`. It only inserts rows that are missing and never updates or deletes existing data, so it is safe to rerun; a sample whose name already exists is skipped. Sample products are those whose images start with `/sample-images/`. To hide them without deleting anything (they may already be in carts or orders), run `SampleData.Disable.sql` the same way. The admin screen cannot re-activate hidden products; to show them again run:
+
+```sql
+UPDATE p SET IsActive = 1, UpdatedAt = SYSUTCDATETIME()
+FROM dbo.Products p
+WHERE EXISTS (SELECT 1 FROM dbo.ProductImages i WHERE i.ProductId = p.Id AND i.ImageUrl LIKE N'/sample-images/%');
+```
+
 4. Start backend (local HTTP example; Development loads User Secrets):
 
 ```powershell

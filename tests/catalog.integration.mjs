@@ -87,15 +87,22 @@ try {
   const tree = expect(await call(null, 'GET', '/categories/tree'), 200);
   assert.equal(tree.find(c => c.id === root).children[0].children[0].id, leaf);
   const p = await product(admin, 10, 1000000);
-  expect(await call(admin.token, 'PUT', `/products/${p}`, { name: 'Đá quý Kim cương đư ơ ă â', categoryId: leaf, price: 1000000, stock: 10, isActive: true }), 204);
+  const specs = { carat: 1.25, color: 'Đỏ huyết bồ câu', clarity: 'VVS1', cut: 'Oval', origin: 'Mogok, Myanmar' };
+  expect(await call(admin.token, 'PUT', `/products/${p}`, { name: 'Đá quý Kim cương đư ơ ă â', categoryId: leaf, price: 1000000, stock: 10, isActive: true, ...specs }), 204);
   for (const q of ['da quy', 'kim cuong', 'du o a a', 'ĐÁ QUÝ']) {
     const result = expect(await call(null, 'GET', `/products/catalog?categoryId=${root}&q=${encodeURIComponent(q)}`), 200);
     assert.equal(result.total, 1); assert.equal(result.items[0].id, p);
   }
+  // Card spec fields used by the hover panel.
+  const specItem = expect(await call(null, 'GET', `/products/catalog?categoryId=${root}`), 200).items.find(i => i.id === p);
+  for (const [key, value] of Object.entries(specs)) assert.equal(specItem[key], value, key);
+  assert.equal(specItem.certificateAuthority, null);
   await product(admin, 2, 100); await product(admin, 2, 200);
   const page = expect(await call(null, 'GET', `/products/catalog?categoryId=${root}&pageSize=2&sort=price-asc`), 200);
   assert.equal(page.total, 3); assert.equal(page.totalPages, 2); assert.equal(page.items.length, 2);
   assert.equal(page.items[0].price, 100);
+  // Products without specs still expose the keys (null), so the card can hide empty rows.
+  for (const key of ['color', 'clarity', 'cut']) { assert.ok(key in page.items[0], key); assert.equal(page.items[0][key], null, key); }
   // Out-of-range page is clamped to the last page; the response reports the page actually served.
   const clamped = expect(await call(null, 'GET', `/products/catalog?categoryId=${root}&pageSize=2&sort=price-asc&page=99`), 200);
   assert.equal(clamped.page, 2); assert.equal(clamped.totalPages, 2); assert.equal(clamped.items.length, 1); assert.equal(clamped.items[0].price, 1000000);
@@ -145,7 +152,7 @@ try {
   assert.equal(expect(await call(a.token, 'GET', '/wishlist'), 200).length, 0);
   expect(await call(a.token, 'POST', '/orders', { requestId: randomUUID(), recipientName: 'Test', recipientPhone: '0900000000', shippingAddress: 'Test' }), 409);
   assert.equal(scalar(`SELECT Stock FROM Products WHERE Id=${p}`), 10);
-  console.log('PASS: hierarchy, sibling uniqueness, cycle/depth checks, PUT required fields, ancestor visibility, checkout rejection, Vietnamese token search, SQL-insert fallback, restart backfill, pagination clamp');
+  console.log('PASS: hierarchy, card spec fields, sibling uniqueness, cycle/depth checks, PUT required fields, ancestor visibility, checkout rejection, Vietnamese token search, SQL-insert fallback, restart backfill, pagination clamp');
 } finally {
   if (restarted && restarted.exitCode === null) {
     const exited = new Promise(r => restarted.once('exit', r));

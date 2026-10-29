@@ -40,3 +40,4 @@ export function AdminIcon() { return <Svg><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2
 export function LogoutIcon() { return <Svg><path d="M14 4h5v16h-5" /><path d="M10 8l-4 4 4 4M6 12h10" /></Svg>; }
 export function SearchIcon() { return <Svg size={18}><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></Svg>; }
 export function MenuIcon() { return <Svg size={22}><path d="M4 7h16M4 12h16M4 17h16" /></Svg>; }
+export function InfoIcon() { return <Svg size={14} strokeWidth={1.8}><circle cx="12" cy="12" r="9" /><path d="M12 11v5.5" /><path d="M12 7.6v.1" /></Svg>; }
