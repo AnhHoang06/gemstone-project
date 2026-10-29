@@ -34,6 +34,8 @@ export default function Products() {
   if (urlPage && urlPage > 1) query.set('page', String(urlPage));
   if (categoryId) query.set('categoryId', categoryId);
   const catalog = useApiData(missingCategory || waitingForName ? null : `/products/catalog?${query}`);
+  // A legacy ?category=<name> URL waits for the tree; show it as loading, not as "0 sản phẩm".
+  const loading = catalog.loading || waitingForName;
   const actualPage = catalog.data?.page;
   // Keep the URL honest: the API clamps out-of-range pages, and invalid page values are dropped.
   useEffect(() => {
@@ -74,11 +76,11 @@ export default function Products() {
           <button className="btn btn-outline" onClick={showAll}>Xem tất cả đá quý</button>
         </div> : <>
           <div className="catalog-toolbar">
-            <p>{catalog.loading ? 'Đang tải…' : catalog.error ? 'Chưa tải được sản phẩm' : `${catalog.data?.total ?? 0} sản phẩm`}</p>
+            <p>{loading ? 'Đang tải…' : catalog.error ? 'Chưa tải được sản phẩm' : `${catalog.data?.total ?? 0} sản phẩm`}</p>
             <label>Sắp xếp <select value={params.get('sort') || 'newest'} onChange={e => change({ sort: e.target.value })}>
               <option value="newest">Mới nhất</option><option value="price-asc">Giá tăng dần</option><option value="price-desc">Giá giảm dần</option><option value="name-asc">Tên A–Z</option></select></label>
           </div>
-          {catalog.loading ? <CatalogSkeleton /> : catalog.error ? <p className="notice notice-error" role="alert">{catalog.error}</p> : catalog.data?.items.length ? <>
+          {loading ? <CatalogSkeleton /> : catalog.error ? <p className="notice notice-error" role="alert">{catalog.error}</p> : catalog.data?.items.length ? <>
             <div className="catalog-grid">{catalog.data.items.map(p => <ProductCard key={p.id} product={p} />)}</div>
             <CatalogPagination page={catalog.data.page} totalPages={catalog.data.totalPages} onChange={page => { change({ page: page > 1 ? String(page) : '' }); grid.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }} />
           </> : <div className="empty-state"><p>Không có sản phẩm phù hợp.</p><button className="btn btn-outline" onClick={showAll}>Xem tất cả đá quý</button></div>}

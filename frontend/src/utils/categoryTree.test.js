@@ -7,6 +7,7 @@ it('maps level-3 category names to icons by keyword, ignoring accents and case',
     'Bông tai Đeo sát & Vòng': 'earring', 'Hoa tai thả': 'earring', 'Lắc tay & Vòng tay charm': 'bracelet', 'Vòng tay Cứng (Bangle)': 'bracelet',
     'Kiềng đeo cổ (Necklace Collar)': 'kieng', 'Ghim cài áo (Brooch)': 'brooch', 'Phụ kiện tóc (Hair Accessory)': 'brooch',
     'Ruby Myanmar': 'gem', 'Nhan': 'ring', 'Thanh lịch': 'gem',
+    'Kim cương nhân tạo': 'gem', 'Nhẫn kim cương nhân tạo': 'ring',
   };
   for (const [name, kind] of Object.entries(cases)) expect([name, categoryIconKind(name)]).toEqual([name, kind]);
 });

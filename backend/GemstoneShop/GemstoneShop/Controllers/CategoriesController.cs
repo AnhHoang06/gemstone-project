@@ -4,6 +4,7 @@ using GemstoneShop.Models;
 using GemstoneShop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace GemstoneShop.Controllers;
@@ -55,9 +56,10 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
         if (category == null) return NotFound(new { message = "Không tìm thấy danh mục." });
         if (dto.ParentId.HasValue && !all.Any(c => c.Id == dto.ParentId)) return BadRequest(new { message = "Danh mục cha không tồn tại." });
         var name = dto.Name.Trim();
-        // `all` is already loaded under the hierarchy lock; mirror the CI column collation (and its trailing-space rule).
-        if (all.Any(c => c.ParentId == dto.ParentId && c.Id != id && string.Equals(c.Name.TrimEnd(), name, StringComparison.InvariantCultureIgnoreCase)))
-            return BadRequest(new { message = "Tên danh mục đã tồn tại trong cùng danh mục cha." });
+        // Ask SQL Server so the check uses the column collation, exactly like UQ_Categories_ParentId_Name.
+        var selfId = id ?? 0;
+        if (await db.Categories.AnyAsync(c => c.ParentId == dto.ParentId && c.Id != selfId && c.Name == name, ct))
+            return DuplicateName();
         var candidate = id ?? -1;
         var parents = all.ToDictionary(c => c.Id, c => c.ParentId);
         parents[candidate] = dto.ParentId;
@@ -75,7 +77,12 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
         category.Name = name; category.Description = dto.Description;
         category.IsActive = dto.IsActive; category.ParentId = dto.ParentId; category.SortOrder = dto.SortOrder;
         if (!id.HasValue) db.Categories.Add(category);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            // Safety net: the unique index is the final authority on sibling names.
+            return DuplicateName();
+        }
         await tx.CommitAsync(ct);
         return id.HasValue ? NoContent() : CreatedAtAction(nameof(GetById), new { id = category.Id }, ToDto(category));
     }
@@ -92,6 +99,9 @@ public class CategoriesController(GemstoneShopContext db) : ControllerBase
         db.Categories.Remove(category); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         return NoContent();
     }
+    private BadRequestObjectResult DuplicateName() =>
+        BadRequest(new { message = "Tên danh mục đã tồn tại trong cùng danh mục cha." });
+
     private static CategoryDto ToDto(Category c) => new() { Id = c.Id, Name = c.Name, Description = c.Description, IsActive = c.IsActive,
         CreatedAt = c.CreatedAt, ParentId = c.ParentId, SortOrder = c.SortOrder };
 }

@@ -38,6 +38,7 @@ const ICON_RULES = [
 ];
 /** Icon kind for a category name, matched by whole words regardless of accents. */
 export function categoryIconKind(name) {
-  const words = ` ${normalizeText(name).replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  // "nhân tạo" (lab-grown) also normalizes to "nhan"; drop it so it is not mistaken for "nhẫn".
+  const words = ` ${normalizeText(name).replace(/[^a-z0-9]+/g, ' ').trim()} `.replace(/ nhan tao /g, ' ');
   return ICON_RULES.find(([, keys]) => keys.some(key => words.includes(` ${key} `)))?.[0] || 'gem';
 }
