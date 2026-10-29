@@ -6,6 +6,10 @@ namespace GemstoneShop.Services;
 
 public static class CatalogQueries
 {
+    // Shared three-level membership; deliberately independent of storefront visibility.
+    public static IQueryable<Product> InCategory(this IQueryable<Product> query, int id) => query.Where(p =>
+        p.CategoryId == id || p.Category.ParentId == id || (p.Category.Parent != null && p.Category.Parent.ParentId == id));
+
     // The hierarchy writer enforces a maximum of three levels; fail closed for deeper legacy trees.
     public static IQueryable<Category> PubliclyVisible(this IQueryable<Category> query) => query.Where(c =>
         c.IsActive && (c.Parent == null || (c.Parent.IsActive &&

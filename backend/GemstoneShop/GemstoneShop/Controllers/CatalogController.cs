@@ -21,7 +21,7 @@ public class CatalogController(GemstoneShopContext db) : ControllerBase
             query = query.Where(p => p.SearchName != null && p.SearchName.Contains(normalized));
         }
         if (request.CategoryId is int id)
-            query = query.Where(p => p.CategoryId == id || p.Category.ParentId == id || (p.Category.Parent != null && p.Category.Parent.ParentId == id));
+            query = query.InCategory(id);
         if (request.MinPrice.HasValue) query = query.Where(p => p.Price >= request.MinPrice.Value);
         if (request.MaxPrice.HasValue) query = query.Where(p => p.Price <= request.MaxPrice.Value);
         var total = await query.CountAsync(ct);
