@@ -119,3 +119,25 @@ Demo orders naturally appear in sales analytics: use only a disposable/local dev
 - Demo cleanup exercised inside an outer rollback transaction: PASS; all 120 demo reviews restored.
 - New module was based on origin/develop bfc6dae. Uncommitted dashboard/UI/seed work in the original checkout
   is intentionally outside this branch.
+
+## Additional sales-correlated dashboard review demo
+DashboardReviewSampleData.sql operates only on existing DashboardSeed_v1 products, orders and synthetic users.
+It requires the separate DashboardSampleData dataset; it does not create or modify purchases, users or products.
+Run with SQLCMD ReviewSeedConsent=LOCAL_SAMPLE_DATA. It ranks products by Completed sold units (ID breaks ties),
+then selects actual qualifying demo purchasers: up to 12 reviews for the highest third, 6 for the middle,
+3 for the lowest. Ratings are 4–5, 3–4, and 1–3 respectively. This correlation is **only a demo scenario**,
+never an application rule. Real displayed scores/counts continue to aggregate visible ProductReviews.
+Content starts with the visible [Mẫu DashboardReview_v1] marker. Existing reviews are never overwritten.
+DashboardReviewSampleDataCleanup.sql removes only marked reviews on matching demo user/product pairs and
+refuses cleanup if they acquired images/helpful votes. Run this cleanup before removing DashboardSeed data.
+
+Local result (2026-10-29): 453 new reviews / 64 products:
+- High sales: 22 products, 264 reviews, average 4.67.
+- Middle sales: 21 products, 126 reviews, average 3.50.
+- Low sales: 21 products, 63 reviews, average 2.00.
+Rerun added zero rows. Public API averages/counts matched SQL for all 64 products.
+Zero reviews lacked a corresponding Completed purchase. Existing ReviewDemo_v1 reviews were preserved.
+
+The DashboardSampleData dataset is maintained separately and is not required to deploy reviews.
+If that dataset has not been installed, skip DashboardReviewSampleData.sql; do not run it as a schema migration.
+SQL LIKE markers escape the underscore literally so cleanup cannot match a similarly named marker by wildcard.
