@@ -9,6 +9,18 @@ const money = value => Number(value).toLocaleString('vi-VN', { style: 'currency'
 const today = () => new Date().toISOString().slice(0, 10);
 const belongsTo = (product, category) => !category || [product.categoryId, product.parentId, product.grandparentId].includes(Number(category));
 
+function DashboardIcon({ type }) {
+  const paths = {
+    revenue: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 9h18m-5 5h2" /></>,
+    orders: <><path d="M8 4H5v17h14V4h-3M9 3h6v4H9z" /><path d="m8 14 3 3 5-6" /></>,
+    units: <><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 5v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5" /></>,
+    average: <><path d="M4 20V5m0 15h17M8 16v-4m5 4V8m5 8V4" /></>,
+    refresh: <><path d="M20 8a8 8 0 0 0-14-3L3 8m0-5v5h5M4 16a8 8 0 0 0 14 3l3-3m0 5v-5h-5" /></>,
+    info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v6m0-10v1" /></>,
+  };
+  return <svg className="dashboard-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{paths[type]}</svg>;
+}
+
 export default function AdminDashboard() {
   const [range, setRange] = useState('30d');
   const [start, setStart] = useState(today);
@@ -48,7 +60,7 @@ export default function AdminDashboard() {
   return <main className="admin-page analytics-page">
     <div className="admin-page-heading"><div><p className="eyebrow">Gem Aurelia · Quản trị</p><h1>Hoạt động kinh doanh</h1>
       <p className="analytics-subtitle">Theo dõi doanh số, từ danh mục đến từng viên đá.</p></div>
-      <button type="button" className="btn btn-outline" disabled={analytics.loading || options.loading} onClick={() => setAttempt(v => v + 1)}>Làm mới</button></div>
+      <button type="button" className="btn btn-outline analytics-refresh" disabled={analytics.loading || options.loading} onClick={() => setAttempt(v => v + 1)}><DashboardIcon type="refresh" />Làm mới</button></div>
     <section className="analytics-filters" aria-label="Bộ lọc báo cáo">
       <label>Thời gian<select aria-label="Thời gian" value={range} onChange={e => setRange(e.target.value)}>
         <option value="7d">7 ngày qua</option><option value="30d">30 ngày qua</option><option value="3m">3 tháng qua</option>
@@ -65,13 +77,13 @@ export default function AdminDashboard() {
       analytics.loading || options.loading ? <div className="analytics-loading" role="status">Đang tải báo cáo bán hàng…</div> : data && <>
         <dl className="dashboard-metrics">
           {[
-            ['Doanh thu', money(data.summary.revenue), 'Giá trị các dòng hàng phù hợp'],
-            ['Đơn hoàn tất đã thanh toán', number(data.summary.completedOrders), 'Mỗi đơn chỉ được tính một lần'],
-            ['Số lượng bán', number(data.summary.unitsSold), 'Tổng số lượng trên các dòng hàng'],
-            ['Giá trị đơn trung bình', money(data.summary.averageOrderValue), 'Doanh thu lọc / số đơn phù hợp'],
-          ].map(([title, value, note]) => <div className="dashboard-metric" key={title}><dt>{title}</dt><dd>{value}</dd><dd className="dashboard-metric-note">{note}</dd></div>)}
+            ['Doanh thu', money(data.summary.revenue), 'Giá trị các dòng hàng phù hợp', 'revenue'],
+            ['Đơn hoàn tất đã thanh toán', number(data.summary.completedOrders), 'Mỗi đơn chỉ được tính một lần', 'orders'],
+            ['Số lượng bán', number(data.summary.unitsSold), 'Tổng số lượng trên các dòng hàng', 'units'],
+            ['Giá trị đơn trung bình', money(data.summary.averageOrderValue), 'Doanh thu lọc / số đơn phù hợp', 'average'],
+          ].map(([title, value, note, icon]) => <div className="dashboard-metric" key={title}><dt><span>{title}</span><span className="dashboard-metric-icon"><DashboardIcon type={icon} /></span></dt><dd>{value}</dd><dd className="dashboard-metric-note">{note}</dd></div>)}
         </dl>
-        {data.summary.completedOrders === 0 && <p className="analytics-empty" role="status">Chưa có doanh số hoàn tất và đã thanh toán trong phạm vi đã chọn.</p>}
+        {data.summary.completedOrders === 0 && <p className="analytics-empty analytics-warning" role="status"><DashboardIcon type="info" /><span>Chưa có doanh số hoàn tất và đã thanh toán trong phạm vi đã chọn.</span></p>}
         <Suspense fallback={<p role="status">Đang tải biểu đồ…</p>}><AnalyticsCharts data={data} onSelect={drillDown}
           metric={metric} setMetric={setMetric} mixMetric={mixMetric} setMixMetric={setMixMetric} /></Suspense>
       </>}
