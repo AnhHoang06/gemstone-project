@@ -7,6 +7,7 @@ import CategoryMegaMenu from './CategoryMegaMenu';
 import useCategoryTree from '../hooks/useCategoryTree';
 import { useCommerce } from '../commerce/context';
 import { findCategoryPath } from '../utils/categoryTree';
+import { CalendarIcon } from '../consultation/icons';
 import { AdminIcon, BagIcon, ChevronIcon, HeadsetIcon, HeartIcon, LogoutIcon, MenuIcon, OrdersIcon, UserIcon, UserPlusIcon, VietnamFlag } from './Icons';
 
 function IconLink({ to, label, children }) {
@@ -77,6 +78,7 @@ export default function Header() {
         <NavLink to="/cart" className="header-icon" aria-label={cartLabel} data-tooltip="Giỏ hàng"><BagIcon />
           {token && <span className="cart-count" aria-hidden="true">{cartError ? '!' : cart?.totalQuantity ?? '…'}</span>}</NavLink>
         <IconLink to="/orders" label="Đơn hàng"><OrdersIcon /></IconLink>
+        {token && !isAdmin && <IconLink to="/appointments" label="Lịch hẹn"><CalendarIcon /></IconLink>}
         {isAdmin && <IconLink to="/admin/dashboard" label="Quản trị"><AdminIcon /></IconLink>}
         {token && <button type="button" className="header-icon logout-button" aria-label="Đăng xuất" data-tooltip="Đăng xuất" onClick={logout}><LogoutIcon /></button>}
       </nav>
