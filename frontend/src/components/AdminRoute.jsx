@@ -24,6 +24,7 @@ function AdminRoute({ children }) {
       <NavLink to="/admin/customers">Khách hàng</NavLink>
       <NavLink to="/admin/orders">Đơn hàng</NavLink>
       <NavLink to="/admin/reviews">Đánh giá & Hỏi đáp</NavLink>
+      <NavLink to="/admin/contacts">Liên hệ</NavLink>
       <Link to="/">Về cửa hàng ↗</Link>
     </nav>
     {children}
