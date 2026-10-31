@@ -12,6 +12,8 @@ public partial class GemstoneShopContext
         ConfigureWishlist(modelBuilder);
         ConfigureReviews(modelBuilder);
         ConfigureCategoryHierarchy(modelBuilder);
+        ConfigureConsultation(modelBuilder);
+        ConfigureChat(modelBuilder);
         modelBuilder.Entity<Order>(entity =>
         {
             entity.Property(x => x.PaymentMethod).HasMaxLength(20).IsUnicode(false);
