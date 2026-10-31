@@ -1,6 +1,7 @@
 import useInlineValidation from "../hooks/useInlineValidation";
 import FieldError from "../components/FieldError";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/api";
 import LogoutButton from "../components/LogoutButton";
 import { apiError } from "../auth/session";
@@ -170,6 +171,13 @@ function Account() {
             <div className="account-actions"><a className="secondary-action" href="/change-password">
               Đổi mật khẩu
             </a><LogoutButton /></div>
+          </div>
+
+          <div className="account-panel account-appointments">
+            <h2>Lịch hẹn tư vấn</h2>
+            <p>Theo dõi trạng thái, hủy lịch hoặc đặt lịch mới với tư vấn viên tại showroom.</p>
+            <div className="account-actions"><Link className="secondary-action" to="/appointments">Lịch hẹn của tôi</Link>
+              <Link className="secondary-action" to="/hen-lich">Đặt lịch tư vấn</Link></div>
           </div>
 
         </div>

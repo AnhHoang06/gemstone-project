@@ -14,21 +14,24 @@ Requirements: .NET 8 SDK, Node.js (compatible with Vite 8), SQL Server with `sql
 ```powershell
 $schema = 'backend/GemstoneShop/GemstoneShop/Database'
 # Replace server/database with your local development instance as needed.
-foreach ($script in @('Person3.sql', 'Wishlist.sql', 'Payment.sql', 'CategoryHierarchy.sql', 'ProductSearch.sql')) {
-    sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -i "$schema/$script"
+foreach ($script in @('Person3.sql', 'Wishlist.sql', 'Payment.sql', 'CategoryHierarchy.sql', 'ProductSearch.sql', 'Reviews.sql', 'Consultation.sql', 'Chat.sql')) {
+    sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -i "$schema/$script"
     if ($LASTEXITCODE -ne 0) { throw "Schema setup failed: $script" }
 }
 ```
 
-These scripts are repeatable. `CategoryHierarchy.sql` retains existing categories as root nodes, adds parent/sort fields, and replaces global name uniqueness with sibling uniqueness. `ProductSearch.sql` adds the normalized search-name column and fills rows where it is still empty; the API also corrects missing or outdated search names at startup. No database or historical order data is recreated. Stop the application during schema deployment and start the matching backend afterward.
+These scripts are repeatable. `CategoryHierarchy.sql` retains existing categories as root nodes, adds parent/sort fields, and replaces global name uniqueness with sibling uniqueness. `ProductSearch.sql` adds the normalized search-name column and fills rows where it is still empty; the API also corrects missing or outdated search names at startup. `Reviews.sql` adds the review/Q&A tables ([details](backend/GemstoneShop/GemstoneShop/Database/Reviews.README.md)). `Consultation.sql` adds consultation services, weekly hours, closed dates and appointments; `Chat.sql` adds customer–staff conversations and messages ([details](backend/GemstoneShop/GemstoneShop/Database/ConsultationChat.README.md)). No database or historical order data is recreated. Stop the application during schema deployment and start the matching backend afterward.
 
 Optional demo data (development/demo machines only, never production) — run after the scripts above:
 
 ```powershell
 sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -i "$schema/SampleData.sql"
+sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -i "$schema/ConsultationSampleData.sql"
 ```
 
-It adds a 3-level category tree (the existing Ruby/Sapphire/Emerald/Diamond/Amethyst roots plus Aquamarine and Garnet), about 30 Vietnamese sample products with specs, `GA-MAU-` sample certificates, and original SVG illustrations served from `wwwroot/sample-images/`. It only inserts rows that are missing and never updates or deletes existing data, so it is safe to rerun; a sample whose name already exists is skipped. Sample products are those whose images start with `/sample-images/`. To hide them without deleting anything (they may already be in carts or orders), run `SampleData.Disable.sql` the same way. The admin screen cannot re-activate hidden products; to show them again run:
+`ConsultationSampleData.sql` (optional, run after `Consultation.sql`) adds three consultation services — "Tư vấn thiết kế trang sức" (free, 60 min), "Kiểm tra & đánh giá đá quý" (500.000 ₫, 45 min), "Tư vấn bộ sưu tập & quà tặng" (free, 45 min) — and the weekly hours Mon–Sat 09:00–18:00, Sun 09:00–12:00, 60-minute slots, 2 customers per slot. It only inserts services (by name) and weekday rows that are missing, so hours already edited by an admin are kept; safe to rerun. Without it the booking page shows no services and every day as closed until an admin configures them. Review demo data (`ReviewSampleData.sql`) needs explicit consent variables; see the reviews README.
+
+`SampleData.sql` adds a 3-level category tree (the existing Ruby/Sapphire/Emerald/Diamond/Amethyst roots plus Aquamarine and Garnet), about 30 Vietnamese sample products with specs, `GA-MAU-` sample certificates, and original SVG illustrations served from `wwwroot/sample-images/`. It only inserts rows that are missing and never updates or deletes existing data, so it is safe to rerun; a sample whose name already exists is skipped. Sample products are those whose images start with `/sample-images/`. To hide them without deleting anything (they may already be in carts or orders), run `SampleData.Disable.sql` the same way. The admin screen cannot re-activate hidden products; to show them again run:
 
 ```sql
 UPDATE p SET IsActive = 1, UpdatedAt = SYSUTCDATETIME()
@@ -61,8 +64,10 @@ Open **http://localhost:2222** (not 127.0.0.1; CORS allows localhost). The defau
 - [Payment schema and bank configuration](backend/GemstoneShop/GemstoneShop/Database/Payment.README.md)
 - [Existing bug-fix testing guide](TESTING-UX-ROUND1.md)
 - [Catalog redesign: APIs, screenshots, verification and limitations](docs/catalog-redesign/README.md)
+- [Product reviews and Q&A](backend/GemstoneShop/GemstoneShop/Database/Reviews.README.md)
+- [Consultation booking and staff chat: schema, API, realtime, deployment](backend/GemstoneShop/GemstoneShop/Database/ConsultationChat.README.md)
 
-Contact/social information lives in `frontend/src/config/site.js`. Empty values are hidden; fill only verified store information. The home carousel currently shows newest products (there is no featured flag). Product images use existing uploads; missing images have a neutral placeholder. Knowledge, contact, appointment and support routes intentionally contain no fake forms or business claims.
+Contact/social information lives in `frontend/src/config/site.js`. Empty values are hidden; fill only verified store information. The home carousel currently shows newest products (there is no featured flag). Product images use existing uploads; missing images have a neutral placeholder. Knowledge and support routes intentionally contain no fake forms or business claims; the contact page uses the authenticated staff chat and the appointment page uses the real booking API (no e-mail/contact form).
 
 Database First extensions remain in partial files. Do not generate migrations or overwrite the extensions when scaffolding. `CategoryHierarchy.sql` owns uniqueness changes; scaffolded category index metadata has deliberately not been altered, and duplicate sibling names under different parents are verified at runtime.
 
@@ -80,6 +85,9 @@ node tests/wishlist.integration.mjs
 node tests/product-removal.integration.mjs
 node tests/payment.integration.mjs
 node tests/catalog.integration.mjs
+node tests/reviews.integration.mjs
+node tests/consultation.integration.mjs
+node tests/chat.integration.mjs
 ```
 
-Integration suites require the local backend and matching local database. Defaults: API `http://localhost:5113`, SQL server `.\SQLEXPRESS`, DB `GemstoneShop`, Windows authentication. Override `PERSON3_API_URL`, `PERSON3_SQL_SERVER`, `PERSON3_SQL_DATABASE` together as needed. `tests/catalog.integration.mjs` reads `CATALOG_API_URL`, `CATALOG_SQL_SERVER`, `CATALOG_SQL_DATABASE` (falling back to the `PERSON3_*` values); its restart check starts a second API from the built `bin/Debug/<tfm>/GemstoneShop.dll` on `CATALOG_RESTART_URL` (default `http://localhost:5115`, override the DLL with `CATALOG_BACKEND_DLL`) and needs the same connection string and `Jwt:Key` in the environment — set `CATALOG_SKIP_RESTART=1` to skip it. Use only a disposable/development database: tests create and clean temporary users/products/orders and exercise failure triggers and schema constraints. They are not production health checks.
+Integration suites require the local backend and matching local database. Defaults: API `http://localhost:5113`, SQL server `.\SQLEXPRESS`, DB `GemstoneShop`, Windows authentication. Override `PERSON3_API_URL`, `PERSON3_SQL_SERVER`, `PERSON3_SQL_DATABASE` together as needed. `tests/catalog.integration.mjs` reads `CATALOG_API_URL`, `CATALOG_SQL_SERVER`, `CATALOG_SQL_DATABASE` (falling back to the `PERSON3_*` values); its restart check starts a second API from the built `bin/Debug/<tfm>/GemstoneShop.dll` on `CATALOG_RESTART_URL` (default `http://localhost:5115`, override the DLL with `CATALOG_BACKEND_DLL`) and needs the same connection string and `Jwt:Key` in the environment — set `CATALOG_SKIP_RESTART=1` to skip it. `tests/consultation.integration.mjs` and `tests/chat.integration.mjs` read `CONSULT_*` / `CHAT_*` (`API_URL`, `SQL_SERVER`, `SQL_DATABASE`, falling back to `PERSON3_*`); the consultation suite temporarily replaces the weekly hours with a fixed test schedule and restores the original rows afterwards, so do not run it while someone is configuring hours. `tests/reviews.integration.mjs` uses `PERSON3_API_URL` (default `http://localhost:5121`). Use only a disposable/development database: tests create and clean temporary users/products/orders and exercise failure triggers and schema constraints. They are not production health checks.

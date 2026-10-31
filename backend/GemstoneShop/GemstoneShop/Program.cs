@@ -33,6 +33,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<OrderEvents>();
+// Consultation booking + staff chat. TimeProvider is injectable so tests can pin "now" (store time = Asia/Ho_Chi_Minh).
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<StoreClock>();
+builder.Services.AddScoped<ConsultationScheduler>();
+builder.Services.AddScoped<AppointmentEvents>();
+builder.Services.AddScoped<ChatEvents>();
+builder.Services.AddScoped<ChatService>();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -88,7 +95,8 @@ builder.Services
         {
             OnMessageReceived = context =>
             {
-                if (context.HttpContext.Request.Path.StartsWithSegments("/hubs/orders"))
+                var path = context.HttpContext.Request.Path;
+                if (path.StartsWithSegments("/hubs/orders") || path.StartsWithSegments("/hubs/chat"))
                 {
                     var token = context.Request.Query["access_token"];
                     if (!string.IsNullOrEmpty(token)) context.Token = token;
@@ -139,5 +147,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<OrdersHub>("/hubs/orders", options => options.CloseOnAuthenticationExpiration = true);
+app.MapHub<ChatHub>("/hubs/chat", options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();

@@ -1,10 +1,11 @@
 import useInlineValidation from "../../hooks/useInlineValidation";
 import FieldError from "../../components/FieldError";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
 import { apiError } from "../../auth/session";
 import AuthLayout from "../../components/AuthLayout";
+import { safeNextPath, withNext } from "./nextPath";
 
 export default function Register() {
   const validation = useInlineValidation();
@@ -12,6 +13,9 @@ export default function Register() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [searchParams] = useSearchParams();
+  const next = safeNextPath(searchParams.get("next"));
+  const loginPath = withNext("/login", next);
 
   async function submit(event) {
     event.preventDefault();
@@ -32,7 +36,7 @@ export default function Register() {
   }
 
   return <AuthLayout title="Tạo tài khoản" description="Thông tin của bạn, được lưu giữ tại một nơi. Mật khẩu cần ít nhất 8 ký tự.">
-    {success ? <p className="notice notice-success" role="status">Đăng ký thành công. <Link to="/login">Đăng nhập</Link></p> :
+    {success ? <p className="notice notice-success" role="status">Đăng ký thành công. <Link to={loginPath}>Đăng nhập</Link>{next ? " để tiếp tục." : ""}</p> :
       <form noValidate onChange={validation.onChange} onSubmit={submit}>
         {error && <p className="notice notice-error" role="alert">{error}</p>}
         <fieldset disabled={saving}>
@@ -52,6 +56,6 @@ export default function Register() {
           <button type="submit">{saving ? "Đang đăng ký..." : "Đăng ký"}</button>
         </fieldset>
       </form>}
-    {!success && <p className="auth-switch">Đã có tài khoản? <Link to="/login">Đăng nhập</Link></p>}
+    {!success && <p className="auth-switch">Đã có tài khoản? <Link to={loginPath}>Đăng nhập</Link></p>}
   </AuthLayout>;
 }

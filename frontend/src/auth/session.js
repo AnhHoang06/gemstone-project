@@ -7,7 +7,8 @@ export function clearSession() {
 function clearCheckoutDrafts() {
   localStorage.removeItem("gem-aurelia:recent-products");
   for (const key of Object.keys(sessionStorage))
-    if (key.startsWith("commerce-checkout:")) sessionStorage.removeItem(key);
+    // Drafts may hold contact names and phone numbers: never keep them across sessions.
+    if (key.startsWith("commerce-checkout:") || key.startsWith("gem-aurelia:booking-request:")) sessionStorage.removeItem(key);
 }
 
 export function getSessionToken() { return localStorage.getItem("token") || ""; }

@@ -1,10 +1,11 @@
 import useInlineValidation from "../../hooks/useInlineValidation";
 import FieldError from "../../components/FieldError";
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
 import { apiError, saveSession } from "../../auth/session";
 import AuthLayout from "../../components/AuthLayout";
+import { safeNextPath, withNext } from "./nextPath";
 
 function Login() {
   const validation = useInlineValidation();
@@ -14,6 +15,8 @@ function Login() {
 
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = safeNextPath(searchParams.get("next"));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +34,9 @@ function Login() {
 
       saveSession(response.data);
 
-      if (response.data.role === "Admin") {
+      if (next) {
+        navigate(next, { replace: true });
+      } else if (response.data.role === "Admin") {
         navigate("/admin/products");
       } else {
         navigate("/");
@@ -46,6 +51,7 @@ function Login() {
   return (
     <AuthLayout title="Chào mừng trở lại" description="Đăng nhập để quản lý tài khoản và tiếp tục khám phá bộ sưu tập đá quý.">
 
+      {next && <p className="notice" role="status">{next.startsWith("/hen-lich") ? "Đăng nhập để hoàn tất đặt lịch tư vấn. Dịch vụ và thời gian bạn chọn vẫn được giữ nguyên." : "Đăng nhập để tiếp tục, bạn sẽ được đưa về trang đang xem."}</p>}
       <form noValidate onChange={validation.onChange} onSubmit={handleSubmit}>
         <div>
           <label htmlFor="login-email">Email</label>
@@ -72,7 +78,7 @@ function Login() {
         <button type="submit" disabled={saving}>
           {saving ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
-      </form><p className="auth-switch">Chưa có tài khoản? <Link to="/register">Đăng ký</Link></p>
+      </form><p className="auth-switch">Chưa có tài khoản? <Link to={withNext("/register", next)}>Đăng ký</Link></p>
     </AuthLayout>
   );
 }

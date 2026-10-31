@@ -11,6 +11,7 @@ import ProductGallery from "../components/ProductGallery";
 import AddToCartButton from "../components/AddToCartButton";
 import FavoriteToggle from "../components/FavoriteToggle";
 import ProductSearchBar from "../components/ProductSearchBar";
+import ChatProductContext from "../chat/ChatProductContext";
 
 function ProductDetail() {
   return <div className="store-container catalog-page product-detail-page"><ProductSearchBar /><ProductDetailContent /></div>;
@@ -36,6 +37,7 @@ function ProductDetailContent() {
 
   return (
     <>
+      <ChatProductContext product={product} />
       <nav className="catalog-breadcrumb" aria-label="Đường dẫn">
         <Link to="/">Trang chủ</Link><span aria-hidden="true">/</span><Link to="/shop">Thế giới đá quý</Link>
         {categoryPath.map(c => <span key={c.id}><span aria-hidden="true">/ </span><Link to={`/shop?category=${c.id}`}>{c.name}</Link></span>)}

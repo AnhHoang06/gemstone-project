@@ -1,5 +1,6 @@
 import { Link, NavLink, Navigate } from "react-router-dom";
 import LogoutButton from "./LogoutButton";
+import AdminChatNavLink from "../chat/AdminChatNavLink";
 
 function AdminRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -23,7 +24,10 @@ function AdminRoute({ children }) {
       <NavLink to="/admin/categories">Danh mục</NavLink>
       <NavLink to="/admin/customers">Khách hàng</NavLink>
       <NavLink to="/admin/orders">Đơn hàng</NavLink>
+      <NavLink to="/admin/appointments">Lịch hẹn</NavLink>
+      <AdminChatNavLink />
       <NavLink to="/admin/reviews">Đánh giá & Hỏi đáp</NavLink>
+      <NavLink to="/admin/consultation">Cấu hình tư vấn</NavLink>
       <Link to="/">Về cửa hàng ↗</Link>
     </nav>
     {children}

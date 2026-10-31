@@ -32,6 +32,12 @@ import OrderHistory from "./pages/OrderHistory";
 import OrderDetail from "./pages/OrderDetail";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
+import Booking from "./pages/Booking";
+import MyAppointments from "./pages/MyAppointments";
+import AdminAppointments from "./pages/admin/AdminAppointments";
+import AdminConsultation from "./pages/admin/AdminConsultation";
+import Contact from "./pages/Contact";
+import AdminChat from "./pages/admin/AdminChat";
 
 function App() {
   return (
@@ -40,7 +46,8 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          {[['/kien-thuc', 'Kiến thức'], ['/lien-he', 'Liên hệ'], ['/hen-lich', 'Hẹn lịch'], ['/ho-tro', 'Hỗ trợ']].map(([path, title]) => <Route key={path} path={path} element={<PlaceholderPage title={title} />} />)}
+          {[['/kien-thuc', 'Kiến thức'], ['/ho-tro', 'Hỗ trợ']].map(([path, title]) => <Route key={path} path={path} element={<PlaceholderPage title={title} />} />)}
+          <Route path="/lien-he" element={<Contact />} />
           <Route path="/shop" element={ <Products /> } />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
@@ -51,6 +58,8 @@ function App() {
           <Route path="/review-product/:id" element={<ProtectedRoute><OrderReview /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+          <Route path="/hen-lich" element={<Booking />} />
+          <Route path="/appointments" element={<ProtectedRoute><MyAppointments /></ProtectedRoute>} />
           {/* Sản phẩm lấy từ API (feature-product) */}
           <Route path="/products" element={<LegacyProductRedirect />} />
           <Route path="/products/:id" element={<LegacyProductRedirect />} />
@@ -70,6 +79,9 @@ function App() {
         <Route path="/admin/reviews" element={<AdminRoute><AdminReviews /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetail /></AdminRoute>} />
+        <Route path="/admin/appointments" element={<AdminRoute><AdminAppointments /></AdminRoute>} />
+        <Route path="/admin/consultation" element={<AdminRoute><AdminConsultation /></AdminRoute>} />
+        <Route path="/admin/chat" element={<AdminRoute><AdminChat /></AdminRoute>} />
       </Routes>
     </BrowserRouter>
   );
