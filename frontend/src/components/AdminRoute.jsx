@@ -28,6 +28,7 @@ function AdminRoute({ children }) {
       <AdminChatNavLink />
       <NavLink to="/admin/reviews">Đánh giá & Hỏi đáp</NavLink>
       <NavLink to="/admin/consultation">Cấu hình tư vấn</NavLink>
+      <NavLink to="/admin/contacts">Liên hệ</NavLink>
       <Link to="/">Về cửa hàng ↗</Link>
     </nav>
     {children}

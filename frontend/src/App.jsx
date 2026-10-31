@@ -1,4 +1,6 @@
 import SupportPage from './pages/SupportPage';
+import AdminContacts from './pages/admin/AdminContacts';
+import AdminContactDetail from './pages/admin/AdminContactDetail';
 import AdminReviews from './pages/admin/AdminReviews';
 import OrderReview from './engagement/OrderReview';
 import './styles/engagement.css';
@@ -76,6 +78,8 @@ function App() {
         <Route path="/admin/categories" element={<AdminRoute> <AdminCategories /> </AdminRoute>} />
         <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/contacts" element={<AdminRoute><AdminContacts /></AdminRoute>} />
+        <Route path="/admin/contacts/:id" element={<AdminRoute><AdminContactDetail /></AdminRoute>} />
         <Route path="/admin/reviews" element={<AdminRoute><AdminReviews /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrderDetail /></AdminRoute>} />
