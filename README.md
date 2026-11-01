@@ -67,7 +67,7 @@ Open **http://localhost:2222** (not 127.0.0.1; CORS allows localhost). The defau
 - [Product reviews and Q&A](backend/GemstoneShop/GemstoneShop/Database/Reviews.README.md)
 - [Consultation booking and staff chat: schema, API, realtime, deployment](backend/GemstoneShop/GemstoneShop/Database/ConsultationChat.README.md)
 
-Contact/social information lives in `frontend/src/config/site.js`. Empty values are hidden; fill only verified store information. The home carousel currently shows newest products (there is no featured flag). Product images use existing uploads; missing images have a neutral placeholder. Knowledge and support routes intentionally contain no fake forms or business claims; the contact page uses the authenticated staff chat and the appointment page uses the real booking API (no e-mail/contact form).
+Contact/social information lives in `frontend/src/config/site.js`. Empty values are hidden; fill only verified store information. The home carousel currently shows newest products (there is no featured flag). Product images use existing uploads; missing images have a neutral placeholder. The support route intentionally contains no fake forms or business claims; the contact page uses the authenticated staff chat and the appointment page uses the real booking API (no e-mail/contact form).
 
 Database First extensions remain in partial files. Do not generate migrations or overwrite the extensions when scaffolding. `CategoryHierarchy.sql` owns uniqueness changes; scaffolded category index metadata has deliberately not been altered, and duplicate sibling names under different parents are verified at runtime.
 

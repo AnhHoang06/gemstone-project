@@ -46,7 +46,7 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          {[['/kien-thuc', 'Kiến thức'], ['/ho-tro', 'Hỗ trợ']].map(([path, title]) => <Route key={path} path={path} element={<PlaceholderPage title={title} />} />)}
+          <Route path="/ho-tro" element={<PlaceholderPage title="Hỗ trợ" />} />
           <Route path="/lien-he" element={<Contact />} />
           <Route path="/shop" element={ <Products /> } />
           <Route path="/product/:id" element={<ProductDetail />} />

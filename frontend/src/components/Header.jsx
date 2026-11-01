@@ -56,7 +56,7 @@ export default function Header() {
           {open && <CategoryMegaMenu id="gem-mega-menu" nodes={nodes} loading={loading} error={error} initialRootId={currentRoot?.id}
             selected={category} onNavigate={close} />}
         </div>
-        <NavLink to="/kien-thuc">Kiến thức</NavLink><NavLink to="/lien-he">Liên hệ</NavLink><NavLink to="/hen-lich">Hẹn lịch</NavLink>
+        <NavLink to="/lien-he">Liên hệ</NavLink><NavLink to="/hen-lich">Hẹn lịch</NavLink>
       </nav>
       <div className="store-support">
         <NavLink to="/ho-tro" className="support-link"><HeadsetIcon /> Hỗ trợ</NavLink>
@@ -86,7 +86,7 @@ export default function Header() {
     {mobile && <dialog ref={drawer} className="store-drawer" aria-label="Menu điều hướng" onCancel={event => { event.preventDefault(); close(); }}>
       <button className="drawer-close" aria-label="Đóng menu" onClick={close}>×</button>
       <nav aria-label="Điều hướng di động">
-        <NavLink to="/" end onClick={close}>Trang chủ</NavLink><NavLink to="/kien-thuc" onClick={close}>Kiến thức</NavLink><NavLink to="/lien-he" onClick={close}>Liên hệ</NavLink><NavLink to="/hen-lich" onClick={close}>Hẹn lịch</NavLink><NavLink to="/ho-tro" onClick={close}>Hỗ trợ</NavLink>
+        <NavLink to="/" end onClick={close}>Trang chủ</NavLink><NavLink to="/lien-he" onClick={close}>Liên hệ</NavLink><NavLink to="/hen-lich" onClick={close}>Hẹn lịch</NavLink><NavLink to="/ho-tro" onClick={close}>Hỗ trợ</NavLink>
         <h2>Thế giới đá quý</h2>
         {loading && <p role="status">Đang tải danh mục…</p>}{error && <p role="alert">{error}</p>}
         <CategoryTree nodes={nodes} selected={category} onNavigate={close} className="drawer-tree" />
