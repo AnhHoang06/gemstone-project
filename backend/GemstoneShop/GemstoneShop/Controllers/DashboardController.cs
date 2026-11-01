@@ -31,6 +31,11 @@ public class DashboardController : ControllerBase
 
         var totalOrders = await _context.Orders.CountAsync(cancellationToken);
 
+        // Recognized sales: fulfilled AND actually collected; reporting a transfer is not payment.
+        var revenue = await _context.Orders
+            .Where(o => o.Status.Name == "Completed" && o.PaymentStatus == "Paid")
+            .SumAsync(o => (decimal?)o.TotalAmount, cancellationToken) ?? 0m;
+
         return Ok(new DashboardSummaryDto
         {
             TotalCustomers = customers?.Total ?? 0,
@@ -38,7 +43,7 @@ public class DashboardController : ControllerBase
             TotalProducts = products?.Total ?? 0,
             ActiveProducts = products?.Active ?? 0,
             TotalOrders = totalOrders,
-            TotalRevenue = null
+            TotalRevenue = revenue
         });
     }
 }

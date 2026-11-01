@@ -7,6 +7,8 @@ import { formatPrice } from "../utils/formatPrice";
 import { apiError, getSessionToken } from "../auth/session";
 import { cancelCustomerOrder } from "./orderActions";
 import CancelOrderDialog from "./CancelOrderDialog";
+import PaymentStatusBadge from "./PaymentStatusBadge";
+import { paymentMethodLabel, canCancelOrder } from "./paymentStatus";
 import OrderStatusBadge from "./OrderStatusBadge";
 
 export default function OrderListView({ admin = false }) {
@@ -53,11 +55,12 @@ export default function OrderListView({ admin = false }) {
         <div className="order-card-body"><div><span className="order-label">Người nhận</span><p>{order.recipientName}</p>
           {order.itemCount != null && <p className="order-secondary">{order.itemCount} sản phẩm</p>}</div>
           <div className="order-card-total"><span className="order-label">Tổng thanh toán</span><strong>{formatPrice(order.totalAmount)}</strong></div></div>
+        <p>{paymentMethodLabel(order)} · <PaymentStatusBadge order={order} /></p>
         <div className="order-card-actions"><Link className="btn btn-outline" to={orderPath(order.id)}>Xem chi tiết</Link>
-          {order.status === "Pending" && <button className="btn btn-outline order-cancel" disabled={saving}
+          {order.status === "Pending" && canCancelOrder(order) && <button className="btn btn-outline order-cancel" disabled={saving}
             onClick={event => { event.stopPropagation(); setActionError(""); setPendingCancel(order.id); }}>Hủy đơn</button>}</div>
       </article>)}</div> : data && <div className="table-scroll" aria-busy={refreshing}><table className="shop-table order-admin-table"><thead><tr>
-        <th>Mã đơn</th><th>Người nhận</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th>{!admin && <th>Thao tác</th>}</tr></thead><tbody>
+        <th>Mã đơn</th><th>Người nhận</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thanh toán</th>{!admin && <th>Thao tác</th>}</tr></thead><tbody>
         {data.map(order => <tr key={order.id} className="order-navigation-row" tabIndex={0}
           aria-label={`Mở chi tiết đơn hàng #${order.id}`} aria-keyshortcuts="Enter Space"
           onClick={event => {
@@ -71,8 +74,8 @@ export default function OrderListView({ admin = false }) {
             navigate(orderPath(order.id));
           }}><td><Link to={orderPath(order.id)}>#{order.id}</Link></td>
           <td>{order.recipientName}</td><td>{new Date(order.createdAt).toLocaleString("vi-VN")}</td>
-          <td className="order-money">{formatPrice(order.totalAmount)}</td><td><OrderStatusBadge status={order.status} /></td>
-          {!admin && <td>{order.status === "Pending" && <button className="btn btn-outline" disabled={saving}
+          <td className="order-money">{formatPrice(order.totalAmount)}</td><td><OrderStatusBadge status={order.status} /></td><td><span>{paymentMethodLabel(order)}</span><br /><PaymentStatusBadge order={order} /></td>
+          {!admin && <td>{order.status === "Pending" && canCancelOrder(order) && <button className="btn btn-outline" disabled={saving}
             onClick={() => { setActionError(""); setPendingCancel(order.id); }}>Hủy đơn</button>}</td>}</tr>)}
       </tbody></table></div>}
     {pendingCancel !== null && <CancelOrderDialog orderId={pendingCancel} saving={saving} error={actionError}
