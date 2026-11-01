@@ -46,3 +46,9 @@ it("preserves alternate detail routes and delegates favorite/cart actions to exi
   fireEvent.click(screen.getByRole("button", { name: "Yêu thích: Ruby" }));
   expect(toggle).toHaveBeenCalledWith(7);
 });
+
+it("uses the existing no-image placeholder for an empty product gallery", () => {
+  render(<ProductGallery product={{ id: 1, name: "Ruby", images: [], imageUrl: null }} />);
+  expect(screen.getByText("Chưa có ảnh")).toBeTruthy();
+  expect(screen.queryByRole("img")).toBeNull();
+});

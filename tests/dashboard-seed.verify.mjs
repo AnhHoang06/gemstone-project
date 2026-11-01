@@ -16,9 +16,9 @@ const seed = "LEFT(o.Note,17)=N'DashboardSeed_v1:'";
 const stats = json("SELECT COUNT(*) Orders,MIN(CONVERT(char(10),CreatedAt,23)) StartDate,MAX(CONVERT(char(10),CreatedAt,23)) EndDate,MIN(TotalAmount) MinTotal,MAX(TotalAmount) MaxTotal,AVG(TotalAmount) AverageTotal FROM Orders o WHERE " + seed)[0];
 assert.equal(stats.Orders, 1062, 'Run the dedicated seed first');
 assert.ok(stats.MinTotal > 0 && stats.MaxTotal < 200000000 && stats.MaxTotal / stats.AverageTotal < 10);
-const roots = json("SELECT Id,Name FROM Categories WHERE LEFT(Description,17)=N'DashboardSeed_v1:' AND ParentId IS NULL ORDER BY SortOrder");
+const roots = json("SELECT DISTINCT c.Id,c.Name FROM Categories c JOIN Products p ON p.CategoryId=c.Id WHERE LEFT(p.Description,17)=N'DashboardSeed_v1:' ORDER BY c.Id");
 assert.equal(roots.length, 4);
-const products = json("SELECT p.Id,p.Name,c.ParentId RootId FROM Products p JOIN Categories c ON c.Id=p.CategoryId WHERE LEFT(p.Description,17)=N'DashboardSeed_v1:' ORDER BY p.Id");
+const products = json("SELECT p.Id,p.Name,COALESCE(c.ParentId,c.Id) RootId FROM Products p JOIN Categories c ON c.Id=p.CategoryId WHERE LEFT(p.Description,17)=N'DashboardSeed_v1:' ORDER BY p.Id");
 assert.equal(products.length, 64);
 assert.equal(Number(sql("SELECT COUNT(*) FROM OrderDetails d JOIN Orders o ON o.Id=d.OrderId WHERE " + seed + " AND (d.Quantity NOT BETWEEN 1 AND 4 OR d.UnitPrice<=0 OR d.UnitPrice>20000000)")), 0);
 const days = json("SELECT CONVERT(date,CreatedAt) Day,COUNT(*) Orders FROM Orders o WHERE " + seed + " GROUP BY CONVERT(date,CreatedAt)");
@@ -63,7 +63,13 @@ try {
   const chosen = [products[0], products[1], products[16]];
   for (const product of chosen) {
     const data = await verify(product.RootId, product.Id);
-    assert.equal(data.breakdown.length, 16);
+    const soldProducts = Number(sql(`SELECT COUNT(DISTINCT d.ProductId) FROM OrderDetails d
+      JOIN Orders o ON o.Id=d.OrderId JOIN OrderStatuses st ON st.Id=o.StatusId
+      JOIN Products p ON p.Id=d.ProductId JOIN Categories c ON c.Id=p.CategoryId
+      WHERE st.Name='Completed' AND o.PaymentStatus='Paid'
+        AND o.CreatedAt>='${stats.StartDate}' AND o.CreatedAt<DATEADD(day,1,CONVERT(date,'${stats.EndDate}'))
+        AND (c.Id=${product.RootId} OR c.ParentId=${product.RootId})`));
+    assert.equal(data.breakdown.length, soldProducts);
     assert.ok(data.summary.revenue < data.breakdown.reduce((sum, b) => sum + b.revenue, 0));
   }
   console.log('PASS: seed size, dates, price/quantity bounds, no daily spikes; all/categories/products match SQL');

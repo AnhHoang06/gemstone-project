@@ -28,7 +28,6 @@ BEGIN TRY
  OR EXISTS(SELECT 1 FROM Orders WHERE LEFT(Note,LEN(@Marker))=@Marker)
  BEGIN
    IF (SELECT COUNT(*) FROM Users WHERE Email LIKE 'dashboardseed.v1.%@example.invalid')<>120
-    OR (SELECT COUNT(*) FROM Categories WHERE LEFT(Description,LEN(@Marker))=@Marker)<>12
     OR (SELECT COUNT(*) FROM Products WHERE LEFT(Description,LEN(@Marker))=@Marker)<>64
     OR (SELECT COUNT(*) FROM Orders WHERE LEFT(Note,LEN(@Marker))=@Marker)<>1062
      THROW 51104,'Partial/changed seed detected. Inspect and use guarded cleanup; no data was overwritten.',1;
@@ -56,26 +55,15 @@ BEGIN TRY
  DECLARE @Cuts TABLE(Code int PRIMARY KEY,Name nvarchar(30));
  INSERT @Cuts VALUES(1,N'Oval'),(2,N'Tròn'),(3,N'Giọt nước'),(4,N'Cushion'),(5,N'Bát giác'),(6,N'Marquise'),(7,N'Trái tim'),(8,N'Cabochon');
 
- DECLARE @i int=1,@id int,@name nvarchar(200),@parent int;
- WHILE @i<=4
- BEGIN
-   SELECT @name=Name+N' · Bộ mẫu' FROM @Families WHERE Code=@i;
-   INSERT Categories(Name,Description,IsActive,CreatedAt,ParentId,SortOrder)
-     VALUES(@name,@Marker+N'category:'+CONVERT(nvarchar(10),@i),1,DATEADD(day,-60,@Start),NULL,@i);
-   INSERT #Categories VALUES(@i,CONVERT(int,SCOPE_IDENTITY()));
-   SET @i+=1;
- END;
- DECLARE @code int;
- SET @i=1;
- WHILE @i<=8
- BEGIN
-   SET @code=((@i-1)/2+1)*10+((@i-1)%2+1);
-   SELECT @name=o.Name,@parent=c.Id FROM @Origins o JOIN #Categories c ON c.Code=o.Family WHERE o.Code=@code;
-   INSERT Categories(Name,Description,IsActive,CreatedAt,ParentId,SortOrder)
-     VALUES(@name,@Marker+N'category:'+CONVERT(nvarchar(10),@code),1,DATEADD(day,-60,@Start),@parent,@i%2);
-   INSERT #Categories VALUES(@code,CONVERT(int,SCOPE_IDENTITY()));
-   SET @i+=1;
- END;
+ DECLARE @i int=1,@id int,@name nvarchar(200),@parent int,@code int;
+ -- Resolve existing real roots only. Never create a category for sample data.
+ IF EXISTS(SELECT 1 FROM @Families f WHERE
+   (SELECT COUNT(*) FROM Categories c WHERE c.Name=f.Name AND c.ParentId IS NULL AND c.IsActive=1
+    AND COALESCE(c.Description,N'') NOT LIKE N'DashboardSeed[_]v1:%')<>1)
+   THROW 51106,'Required existing Ruby/Sapphire/Emerald/Amethyst roots missing or ambiguous; no categories created.',1;
+ INSERT #Categories(Code,Id)
+ SELECT o.Code,c.Id FROM @Origins o JOIN @Families f ON f.Code=o.Family
+ JOIN Categories c ON c.Name=f.Name AND c.ParentId IS NULL AND c.IsActive=1;
 
  DECLARE @family int,@variant int,@price decimal(18,2),@carat decimal(5,2),@color nvarchar(30),@origin nvarchar(40),@cut nvarchar(30),@search nvarchar(200);
  SET @i=1;
@@ -183,7 +171,7 @@ BEGIN TRY
  IF EXISTS(SELECT 1 FROM OrderDetails d JOIN #Orders x ON x.Id=d.OrderId WHERE d.Quantity NOT BETWEEN 1 AND 4 OR d.UnitPrice<=0 OR d.UnitPrice>20000000)
    THROW 51107,'Seed price/quantity validation failed; transaction rolled back.',1;
  COMMIT;
- SELECT (SELECT COUNT(*) FROM #Users) AS GeneratedUsers,(SELECT COUNT(*) FROM #Categories) AS GeneratedCategories,
+ SELECT (SELECT COUNT(*) FROM #Users) AS GeneratedUsers,0 AS GeneratedCategories, (SELECT COUNT(DISTINCT Id) FROM #Categories) AS ReusedCategories,
    (SELECT COUNT(*) FROM #Products) AS GeneratedProducts,(SELECT COUNT(*) FROM #Orders) AS GeneratedOrders,
    (SELECT COUNT(*) FROM OrderDetails d JOIN #Orders x ON x.Id=d.OrderId) AS GeneratedOrderDetails;
  PRINT 'Seed created. Run DashboardSampleDataReport.sql for distributions. No existing business rows were changed.';

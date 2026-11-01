@@ -27,8 +27,8 @@ The default Last 30 days intentionally shows only a small recent subset.
 A rolling 12-month interval intersects 13 calendar labels; the first/last chart buckets are partial.
 
 ## Identification and safety
-- Four root categories carry “· Bộ mẫu”; eight child categories use natural gemstone names.
-- Category/Product Description and Order.Note carry the exact DashboardSeed_v1: prefix.
+- Reuses existing Ruby/Sapphire/Emerald/Amethyst roots; creates zero categories. Missing/ambiguous roots fail closed.
+- Product Description and Order.Note carry the exact DashboardSeed_v1: prefix.
 - Customer emails are dashboardseed.v1.NNN@example.invalid; addresses also carry the marker.
 - Customer names are synthetic combinations, not copied personal data. Phone 0000000000 is intentionally
   non-dialable; addresses explicitly say they are simulated and must not be used for delivery.
@@ -108,3 +108,5 @@ node tests/dashboard-seed.verify.mjs
 Optional browser checks: ANALYTICS_SCREENSHOTS=1, ANALYTICS_FRONTEND_URL=http://localhost:2222,
 PLAYWRIGHT_MODULE=file:///absolute/path/to/playwright/index.mjs (Edge installed).
 The verifier creates and removes one temporary admin only; it leaves persistent seed data untouched.
+
+Existing old seeds: run DemoCatalogCleanup.sql once (repeatable) before rerunning seeds. Cleanup scripts delete only marker-owned categories, never the reused real roots.

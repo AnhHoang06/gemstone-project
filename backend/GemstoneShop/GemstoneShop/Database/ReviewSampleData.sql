@@ -21,15 +21,19 @@ DECLARE @customer int=(SELECT Id FROM Roles WHERE Name='Customer'),@adminRole in
  @completed int=(SELECT Id FROM OrderStatuses WHERE Name='Completed');
 IF @customer IS NULL OR @adminRole IS NULL OR @completed IS NULL THROW 51000,'Missing baseline roles/status',1;
 DECLARE @cat int,@admin int;
-INSERT Categories(Name,Description,IsActive,CreatedAt,ParentId,SortOrder)
-VALUES(N'Bộ mẫu đánh giá',N'ReviewDemo_v1:category',1,DATEADD(day,-90,@asOf),NULL,0);
-SET @cat=SCOPE_IDENTITY();
+DECLARE @families TABLE(Name nvarchar(40) PRIMARY KEY,Id int);
+INSERT @families(Name) VALUES(N'Ruby'),(N'Sapphire'),(N'Emerald'),(N'Diamond'),(N'Amethyst');
+IF EXISTS(SELECT 1 FROM @families f WHERE (SELECT COUNT(*) FROM Categories c
+ WHERE c.Name=f.Name AND c.ParentId IS NULL AND c.IsActive=1)<>1)
+ THROW 51000,'Required existing gemstone roots missing or ambiguous; no categories created',1;
+UPDATE f SET Id=c.Id FROM @families f JOIN Categories c ON c.Name=f.Name AND c.ParentId IS NULL AND c.IsActive=1;
 DECLARE @products TABLE(n int PRIMARY KEY,id int,price decimal(18,2),name nvarchar(200));
 DECLARE @n int=1;
 WHILE @n<=12
 BEGIN
  DECLARE @name nvarchar(200)=CHOOSE(@n,N'Ruby Huyết Bồ Câu',N'Sapphire Xanh Ceylon',N'Emerald Colombia',N'Amethyst Tím Đậm',
- N'Ruby Mozambique',N'Sapphire Vàng',N'Aquamarine Xanh Biển',N'Topaz Xanh',N'Garnet Đỏ',N'Peridot Xanh',N'Citrine Vàng',N'Tourmaline Hồng')+N' · mẫu đánh giá';
+ N'Ruby Mozambique',N'Sapphire Vàng',N'Ruby Oval Tự Nhiên',N'Sapphire Oval',N'Emerald Cushion',N'Diamond Round',N'Diamond Princess',N'Amethyst Oval');
+ SELECT @cat=Id FROM @families WHERE Name=LEFT(@name,CHARINDEX(N' ',@name)-1);
  DECLARE @price decimal(18,2)=1000000+@n*350000;
  INSERT Products(CategoryId,Name,Description,Price,Stock,IsActive,CreatedAt,SearchName)
  VALUES(@cat,@name,N'ReviewDemo_v1:product',@price,12,1,DATEADD(day,-90,@asOf),NULL);

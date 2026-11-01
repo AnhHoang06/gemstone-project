@@ -26,7 +26,7 @@ IF EXISTS(SELECT 1 FROM ProductReviews WHERE (ProductId IN(SELECT Id FROM #P) OR
  OR EXISTS(SELECT 1 FROM ProductImages WHERE ProductId IN(SELECT Id FROM #P))
  OR EXISTS(SELECT 1 FROM Certificates WHERE ProductId IN(SELECT Id FROM #P))
  OR EXISTS(SELECT 1 FROM CheckoutReceipts WHERE UserId IN(SELECT Id FROM #U) OR OrderId IN(SELECT Id FROM #O))
- OR EXISTS(SELECT 1 FROM Products WHERE (CategoryId IN(SELECT Id FROM #C) AND Id NOT IN(SELECT Id FROM #P)) OR (Id IN(SELECT Id FROM #P) AND CategoryId NOT IN(SELECT Id FROM #C)))
+ OR EXISTS(SELECT 1 FROM Products WHERE (CategoryId IN(SELECT Id FROM #C) AND Id NOT IN(SELECT Id FROM #P)))
  OR EXISTS(SELECT 1 FROM Categories WHERE ParentId IN(SELECT Id FROM #C))
  THROW 51000,'Demo has external references: inspect manually; nothing removed',1;
 DELETE ReviewHelpfulVotes WHERE ReviewId IN(SELECT Id FROM #R);
