@@ -1,3 +1,4 @@
+import SupportPage from './pages/SupportPage';
 import AdminReviews from './pages/admin/AdminReviews';
 import OrderReview from './engagement/OrderReview';
 import './styles/engagement.css';
@@ -46,8 +47,9 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          {[['/kien-thuc', 'Kiến thức'], ['/ho-tro', 'Hỗ trợ']].map(([path, title]) => <Route key={path} path={path} element={<PlaceholderPage title={title} />} />)}
+          {[['/kien-thuc', 'Kiến thức']].map(([path, title]) => <Route key={path} path={path} element={<PlaceholderPage title={title} />} />)}
           <Route path="/lien-he" element={<Contact />} />
+          <Route path="/ho-tro" element={<SupportPage />} />
           <Route path="/shop" element={ <Products /> } />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
