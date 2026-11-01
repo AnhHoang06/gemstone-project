@@ -66,7 +66,7 @@ function ProductDetailContent() {
           </div>
         </div>
       </section>
-      <RelatedProducts productId={product.id} /><ProductReviews productId={product.id} /><ProductQuestions productId={product.id} /><RecentlyViewed productId={product.id} />
+      <ProductReviews productId={product.id} /><ProductQuestions productId={product.id} /><RelatedProducts productId={product.id} /><RecentlyViewed productId={product.id} />
     </>
   );
 }

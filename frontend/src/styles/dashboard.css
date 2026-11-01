@@ -53,7 +53,7 @@
 .analytics-page .btn-outline:hover:not(:disabled) { background: #1a2e35; border-color: #1a2e35; color: white; box-shadow: 0 4px 12px #1a2e3518; }
 .analytics-page .btn:disabled { opacity: .5; cursor: not-allowed; }
 .dashboard-icon { width: 20px; height: 20px; flex: 0 0 20px; }
-.analytics-refresh { display: inline-flex; gap: .6rem; align-items: center; justify-content: center; }
+.analytics-page .btn.analytics-refresh { display: inline-flex; gap: .6rem; align-items: center; justify-content: center; }
 .analytics-page .dashboard-metric { border-top: 2px solid #c7a56a; padding: 1.25rem; }
 .dashboard-metric dt { display: flex; justify-content: space-between; align-items: start; gap: .5rem; min-height: 42px; color: #4d6062; line-height: 1.6; }
 .dashboard-metric-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 34px; width: 34px; height: 34px; border: 1px solid #d9c7a450; border-radius: 8px; background: #f5eee0; color: #8b692e; }

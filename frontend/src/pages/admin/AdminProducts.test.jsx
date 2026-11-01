@@ -16,6 +16,13 @@ beforeEach(() => {
 afterEach(() => { cleanup(); delete HTMLDialogElement.prototype.showModal; delete HTMLDialogElement.prototype.close; });
 async function mount() { await act(async () => { render(<MemoryRouter><AdminProducts /></MemoryRouter>); }); }
 
+it("shows a load error rather than a misleading empty list", async () => {
+  mocks.get.mockRejectedValueOnce(new Error("Network unavailable"));
+  await mount();
+  expect(screen.getByRole("alert").textContent).toContain("Không thể tải sản phẩm");
+  expect(screen.queryByText("Chưa có sản phẩm nào.")).toBeNull();
+});
+
 it("lists active products only and removes a row only after successful soft deletion", async () => {
   await mount();
   expect(mocks.get).toHaveBeenCalledWith("/products?includeInactive=true");

@@ -7,6 +7,7 @@ import "../../styles/admin.css";
 function AdminProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
     const [pendingDelete, setPendingDelete] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState("");
@@ -17,7 +18,7 @@ function AdminProducts() {
         let active = true;
         api.get("/products?includeInactive=true")
             .then((res) => { if (active) setProducts(res.data.filter(product => product.isActive)); })
-            .catch((err) => console.error(err))
+            .catch(() => { if (active) setLoadError("Không thể tải sản phẩm. Vui lòng tải lại trang để thử lại."); })
             .finally(() => { if (active) setLoading(false); });
         return () => { active = false; };
     }, []);
@@ -47,7 +48,7 @@ function AdminProducts() {
     }
 
     return (
-        <div className="admin-page">
+        <div className="admin-page admin-products-page">
             <div className="admin-page-heading">
                 <h1 ref={headingRef} tabIndex={-1}>Quản lý sản phẩm</h1>
                 <Link to="/admin/products/create" className="btn btn-primary">
@@ -57,6 +58,8 @@ function AdminProducts() {
 
             {loading ? (
                 <p className="empty-state" role="status">Đang tải...</p>
+            ) : loadError ? (
+                <p className="notice notice-error" role="alert">{loadError}</p>
             ) : products.length === 0 ? (
                 <p className="empty-state">Chưa có sản phẩm nào.</p>
             ) : (
@@ -92,7 +95,7 @@ function AdminProducts() {
                                     </td>
                                     <td>{p.name}</td>
                                     <td>{p.categoryName}</td>
-                                    <td>{p.price?.toLocaleString("vi-VN")}₫</td>
+                                    <td className="admin-price">{p.price?.toLocaleString("vi-VN")}₫</td>
                                     <td>{p.stock}</td>
                                     <td>
                                         <span className="badge badge-active">

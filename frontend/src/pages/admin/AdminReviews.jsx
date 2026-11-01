@@ -29,7 +29,7 @@ function Content({token}) {
     finally{lock.current=false;setBusy(false);}
   }
   const data=tab==='analytics'?stats:result;
-  return <main className="admin-page"><h1>Đánh giá & Hỏi đáp</h1>
+  return <main className="admin-page admin-reviews-page"><h1>Đánh giá & Hỏi đáp</h1>
     <nav className="review-filters" aria-label="Quản lý tương tác">{[['reviews','Đánh giá'],['questions','Hỏi đáp'],['analytics','Thống kê đánh giá']].map(([value,label])=><button className="btn btn-outline" key={value} aria-pressed={tab===value} onClick={()=>{setTab(value);setPage(1);setError('');}}>{label}</button>)}</nav>
     {tab!=='analytics'?<div className="review-filters"><label>Sản phẩm / khách hàng<input value={search} maxLength={200} onChange={e=>{setSearch(e.target.value);setPage(1);}}/></label>
       {tab==='reviews'&&<label>Số sao<select value={rating} onChange={e=>{setRating(e.target.value);setPage(1);}}><option value="">Tất cả</option>{[5,4,3,2,1].map(n=><option key={n} value={n}>{n} sao</option>)}</select></label>}
@@ -43,7 +43,7 @@ function Content({token}) {
           <td>{r.rating&&<strong>{r.rating} ★ · {r.helpfulCount} hữu ích</strong>}<p className="review-content">{r.content}</p>
             {r.images&&<div className="review-images">{r.images.map(i=><ReviewImage key={i.id} image={i}/>)}</div>}
             {tab==='questions'&&<AnswerForm key={r.answer?.updatedAt||r.answer?.createdAt||r.id} question={r} run={run} busy={busy}/>}</td>
-          <td><small>{new Date(r.createdAt).toLocaleString('vi-VN')}</small><p>{r.isVisible?'Công khai':'Đã ẩn'}</p>{r.moderatedAt&&<small>Duyệt: {new Date(r.moderatedAt).toLocaleString('vi-VN')}</small>}</td>
+          <td><small>{new Date(r.createdAt).toLocaleString('vi-VN')}</small><p><span className={`badge ${r.isVisible?'badge-active':'badge-inactive'}`}>{r.isVisible?'Công khai':'Đã ẩn'}</span></p>{r.moderatedAt&&<small>Duyệt: {new Date(r.moderatedAt).toLocaleString('vi-VN')}</small>}</td>
           <td><button className="btn btn-outline" disabled={busy} onClick={()=>run(`/admin/${tab}/${r.id}/visibility`,{isVisible:!r.isVisible})}>{r.isVisible?'Ẩn':'Khôi phục'}</button></td></tr>)}
       </tbody></table></div>}
       <div className="review-pagination"><button disabled={page===1} onClick={()=>setPage(p=>p-1)}>Trước</button><span>{result.data?.total||0} kết quả · Trang {page}</span><button disabled={page*20>=(result.data?.total||0)} onClick={()=>setPage(p=>p+1)}>Sau</button></div>
@@ -56,7 +56,7 @@ function Analytics({data}) {
     <p>Trong kỳ: {data.periodCount} đánh giá · Trung bình: {data.averageRating.toFixed(2)} / 5</p>
     <ul>{[5,4,3,2,1].map(n=><li key={n}>{n} ★: {data.distribution.find(d=>d.rating===n)?.count||0}</li>)}</ul>
     <p>Xếp hạng cao/thấp yêu cầu ít nhất 3 đánh giá công khai trong kỳ.</p>
-    <div className="engagement-products">{[['highest','Điểm cao nhất'],['lowest','Điểm thấp nhất'],['mostReviewed','Nhiều đánh giá nhất']].map(([key,title])=><section key={key}><h3>{title}</h3>{!data[key].length?<p>Chưa đủ dữ liệu.</p>:<ol>{data[key].map(r=><li key={r.productId}><Link to={`/product/${r.productId}#reviews`}>{r.name}</Link><p>{r.average.toFixed(2)} ★ · {r.count} đánh giá</p></li>)}</ol>}</section>)}</div>
+    <div className="review-analytics-grid">{[['highest','Điểm cao nhất'],['lowest','Điểm thấp nhất'],['mostReviewed','Nhiều đánh giá nhất']].map(([key,title])=><section key={key}><h3>{title}</h3>{!data[key].length?<p>Chưa đủ dữ liệu.</p>:<ol>{data[key].map(r=><li key={r.productId}><Link to={`/product/${r.productId}#reviews`}>{r.name}</Link><p>{r.average.toFixed(2)} ★ · {r.count} đánh giá</p></li>)}</ol>}</section>)}</div>
     <h3>Đánh giá mới nhất trong kỳ</h3>{data.latest.map(r=><article className="review-card" key={r.id}><strong>{r.productName} · {r.rating} ★</strong><p>{r.customerName}</p><p className="review-content">{r.content}</p></article>)}
   </section>;
 }

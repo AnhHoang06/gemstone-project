@@ -333,6 +333,9 @@
 .store-topnav :is(a,button):focus-visible { outline-color:var(--ink); }
 
 /* Admin categories (unchanged layout). */
+.catalog-price input[type="number"] { appearance:textfield; -moz-appearance:textfield; }
+.catalog-price input[type="number"]::-webkit-inner-spin-button,
+.catalog-price input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
 .category-admin-page { min-width:0; }.category-admin-page .admin-form { max-width:100%; min-width:0; }.category-admin-page .form-row { min-width:0; }.category-admin-page .form-row select { width:100%; min-width:0; }.category-admin-page .table-scroll { position:relative; max-width:100%; overflow-x:auto; }
 
 @media (max-width:1199px) {
