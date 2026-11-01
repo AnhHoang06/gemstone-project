@@ -1,3 +1,4 @@
+import SupportPage from './pages/SupportPage';
 import AdminReviews from './pages/admin/AdminReviews';
 import OrderReview from './engagement/OrderReview';
 import './styles/engagement.css';
@@ -15,7 +16,6 @@ import Products from "./pages/Products";
 import TestCategories from "./pages/TestCategories";
 import Wishlist from "./pages/Wishlist";
 import LegacyProductRedirect from "./components/LegacyProductRedirect";
-import PlaceholderPage from "./pages/PlaceholderPage";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminProductForm from "./pages/admin/AdminProductForm";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -46,8 +46,8 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/ho-tro" element={<PlaceholderPage title="Hỗ trợ" />} />
           <Route path="/lien-he" element={<Contact />} />
+          <Route path="/ho-tro" element={<SupportPage />} />
           <Route path="/shop" element={ <Products /> } />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
