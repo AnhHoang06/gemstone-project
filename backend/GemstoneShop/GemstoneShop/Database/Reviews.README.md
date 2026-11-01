@@ -141,3 +141,6 @@ Zero reviews lacked a corresponding Completed purchase. Existing ReviewDemo_v1 r
 The DashboardSampleData dataset is maintained separately and is not required to deploy reviews.
 If that dataset has not been installed, skip DashboardReviewSampleData.sql; do not run it as a schema migration.
 SQL LIKE markers escape the underscore literally so cleanup cannot match a similarly named marker by wildcard.
+
+## Existing category taxonomy
+ReviewSampleData.sql now reuses existing Ruby/Sapphire/Emerald/Diamond/Amethyst roots and adds no categories. Product names have no sample suffix. Missing roots fail closed. Run DemoCatalogCleanup.sql for an existing older seed; order snapshots/reviews are preserved.

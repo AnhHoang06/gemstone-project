@@ -57,6 +57,8 @@
 .cart-order-summary .cart-payment { margin-top: 0; border-top: 0; padding-top: 0; }
 @media (max-width: 1000px) { .cart-purchase-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 600px) {
+  /* Cards replace the table on mobile; do not inherit the shared 720px table minimum. */
+  .commerce-page .cart-items-table { min-width: 0; }
   .container.cart-page { padding-inline: 1rem; }
   .cart-order-summary { padding: 1rem; }
   .cart-items-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

@@ -1,6 +1,6 @@
-﻿-- Dữ liệu mẫu (TÙY CHỌN) cho máy dev/demo: cây danh mục 3 cấp, ~30 sản phẩm tiếng Việt, chứng nhận và ảnh SVG.
+﻿-- Dữ liệu mẫu (TÙY CHỌN) cho máy dev/demo: dùng danh mục hiện có, ~30 sản phẩm tiếng Việt, chứng nhận và ảnh SVG.
 -- Chạy SAU CategoryHierarchy.sql và ProductSearch.sql:  sqlcmd -d <database> -b -f 65001 -i SampleData.sql
--- Chạy lại an toàn: chỉ THÊM khi chưa có — danh mục theo (ParentId, Name), sản phẩm theo Name, chứng nhận theo
+-- Chạy lại an toàn: không tạo danh mục — chỉ thêm sản phẩm theo Name, chứng nhận theo
 -- CertificateNumber (tiền tố GA-MAU-), ảnh theo (ProductId, ImageUrl). Không UPDATE/DELETE dữ liệu đang có.
 -- Sản phẩm mẫu nhận diện bằng ảnh '/sample-images/%' (wwwroot/sample-images). Tắt chúng bằng SampleData.Disable.sql.
 -- SearchName được điền sẵn bằng đúng quy tắc CatalogQueries.NormalizeSearch (startup backfill sẽ thấy khớp, không ghi lại).
@@ -68,19 +68,12 @@ BEGIN
     CROSS APPLY (SELECT TOP 1 x.Id FROM dbo.Categories x WHERE x.Name = c.Name
         AND ((c.ParentCode IS NULL AND x.ParentId IS NULL) OR x.ParentId = pc.Id) ORDER BY x.Id) p
     WHERE c.Lvl = @lvl;
-    INSERT INTO dbo.Categories (Name, Description, IsActive, ParentId, SortOrder)
-    SELECT c.Name, c.Description, 1, pc.Id, c.SortOrder FROM #Cat c LEFT JOIN #Cat pc ON pc.Code = c.ParentCode
-    WHERE c.Lvl = @lvl AND c.Id IS NULL AND (c.ParentCode IS NULL OR pc.Id IS NOT NULL) ORDER BY c.SortOrder, c.Code;
-    SET @categories += @@ROWCOUNT;
-    UPDATE c SET Id = p.Id FROM #Cat c LEFT JOIN #Cat pc ON pc.Code = c.ParentCode
-    CROSS APPLY (SELECT TOP 1 x.Id FROM dbo.Categories x WHERE x.Name = c.Name
-        AND ((c.ParentCode IS NULL AND x.ParentId IS NULL) OR x.ParentId = pc.Id) ORDER BY x.Id) p
-    WHERE c.Lvl = @lvl AND c.Id IS NULL;
+    -- Use the nearest resolved ancestor when a demo leaf is absent; never invent taxonomy.
+    UPDATE c SET Id=pc.Id FROM #Cat c JOIN #Cat pc ON pc.Code=c.ParentCode
+    WHERE c.Lvl=@lvl AND c.Id IS NULL;
     SET @lvl += 1;
 END;
--- A same-named category nested deeper than 3 levels (or similar drift) must not silently drop sample rows.
-IF EXISTS (SELECT 1 FROM #Cat WHERE Id IS NULL)
-    THROW 50003, N'SampleData.sql: không xác định được danh mục mẫu.', 1;
+-- Missing families remain unresolved; their demo products are skipped, not misclassified.
 
 CREATE TABLE #P (Seq int NOT NULL PRIMARY KEY, CatCode varchar(60) NOT NULL, Name nvarchar(200) NOT NULL, SearchName nvarchar(200) NOT NULL,
     Description nvarchar(max) NULL, Price decimal(18,2) NOT NULL, Stock int NOT NULL, Carat decimal(6,2) NULL, Color nvarchar(100) NULL,
@@ -193,7 +186,7 @@ INSERT INTO dbo.Products (CategoryId, Name, Description, Price, Stock, Carat, Co
 OUTPUT INSERTED.Id INTO @new (Id)
 SELECT c.Id, p.Name, p.Description, p.Price, p.Stock, p.Carat, p.Color, p.Clarity, p.Cut, p.Origin, 1, p.SearchName
 FROM #P p JOIN #Cat c ON c.Code = p.CatCode
-WHERE NOT EXISTS (SELECT 1 FROM dbo.Products x WHERE x.Name = p.Name) ORDER BY p.Seq;
+WHERE c.Id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Products x WHERE x.Name = p.Name) ORDER BY p.Seq;
 SET @products = @@ROWCOUNT;
 -- Only products created by this script (now or in an earlier run, recognisable by a sample image) get certificates/images.
 UPDATE p SET ProductId = x.Id FROM #P p CROSS APPLY (SELECT TOP 1 pr.Id FROM dbo.Products pr WHERE pr.Name = p.Name
@@ -218,7 +211,7 @@ SET @images = @@ROWCOUNT;
 
 SELECT @n = COUNT(*) FROM #P WHERE ProductId IS NULL;
 PRINT CONCAT(N'SampleData: +', @categories, N' danh mục, +', @products, N' sản phẩm, +', @certificates, N' chứng nhận, +', @images, N' ảnh.');
-IF @n > 0 PRINT CONCAT(N'SampleData: bỏ qua ', @n, N' sản phẩm mẫu vì trùng tên với sản phẩm đã có.');
+IF @n > 0 PRINT CONCAT(N'SampleData: bỏ qua ', @n, N' sản phẩm mẫu vì trùng tên hoặc không có danh mục hiện hữu phù hợp.');
 DROP TABLE #P;
 DROP TABLE #Cat;
 COMMIT;

@@ -11,6 +11,9 @@ public static class CatalogQueries
     public const int MaxSearchTokens = 10;
     // Accent- and case-insensitive; also folds đ/Đ to d. Used only for the NULL SearchName fallback.
     private const string AccentInsensitiveCollation = "Latin1_General_100_CI_AI";
+    // Shared three-level membership; deliberately independent of storefront visibility.
+    public static IQueryable<Product> InCategory(this IQueryable<Product> query, int id) => query.Where(p =>
+        p.CategoryId == id || p.Category.ParentId == id || (p.Category.Parent != null && p.Category.Parent.ParentId == id));
 
     // The hierarchy writer enforces a maximum of three levels; fail closed for deeper legacy trees.
     public static IQueryable<Category> PubliclyVisible(this IQueryable<Category> query) => query.Where(c =>
