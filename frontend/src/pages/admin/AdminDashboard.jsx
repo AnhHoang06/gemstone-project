@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatPrice } from "../../utils/formatPrice";
 import api from "../../api/api";
 import { apiError } from "../../auth/session";
 import "../../styles/admin.css";
@@ -54,7 +55,8 @@ export default function AdminDashboard() {
         </dl>}
     <section className="dashboard-dependency" aria-labelledby="revenue-heading">
       <h2 id="revenue-heading">Doanh thu</h2>
-      <p>Chưa khả dụng. Hệ thống chưa xác định quy tắc thanh toán và ghi nhận doanh thu cho đơn hoàn tất.</p>
+      <p>Chỉ ghi nhận đơn hoàn tất và đã thanh toán (Completed + Paid).</p>
+      {!loading && !error && summary && <strong>{formatPrice(summary.totalRevenue ?? 0)}</strong>}
     </section>
   </main>;
 }

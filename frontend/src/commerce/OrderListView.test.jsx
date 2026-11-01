@@ -106,7 +106,7 @@ it.each([false, true])("shows real detail fields and preserves allowed actions (
   expect(screen.getByRole('cell', { name: 'Ruby' })).toBeTruthy();
   expect(screen.getByRole('cell', { name: '2' })).toBeTruthy();
   expect(screen.getByText('Hiện tại').closest('li').getAttribute('aria-current')).toBe('step');
-  expect(Boolean(screen.queryByRole('button', { name: 'Chuyển: Đã xác nhận' }))).toBe(admin);
+  expect(Boolean(screen.queryByRole('button', { name: 'Xác nhận đơn hàng' }))).toBe(admin);
   fireEvent.click(screen.getByRole('button', { name: 'Hủy đơn' }));
   expect(screen.getByRole('group', { name: 'Xác nhận hủy đơn' })).toBeTruthy();
   expect(mocks.put).not.toHaveBeenCalled();
