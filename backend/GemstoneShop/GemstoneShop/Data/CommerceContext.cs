@@ -18,7 +18,10 @@ public partial class GemstoneShopContext
         {
             entity.Property(x => x.PaymentMethod).HasMaxLength(20).IsUnicode(false);
             entity.Property(x => x.PaymentStatus).HasMaxLength(20).IsUnicode(false);
-            entity.Property(x => x.PaidAt).HasColumnType("datetime2");
+            entity.Property(x => x.PaymentReportedAt).HasColumnType("datetime2")
+                .HasConversion(value => value, value => value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : value);
+            entity.Property(x => x.PaidAt).HasColumnType("datetime2")
+                .HasConversion(value => value, value => value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : value);
         });
         modelBuilder.Entity<CheckoutReceipt>(entity =>
         {

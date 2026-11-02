@@ -68,3 +68,7 @@
   .cart-items-table td:first-child { flex-wrap: wrap; justify-content: flex-start; }
   .cart-items-table td[data-label]:not(:first-child)::before { content: attr(data-label); color: #6b7068; }
 }
+
+/* Local bank QR: retain the white quiet zone, including on narrow screens. */
+.payment-qr { display: block; width: 264px; max-width: 100%; height: auto; margin: 16px auto; background: #fff; }
+.payment-panel .payment-bank dd { min-width: 0; overflow-wrap: anywhere; user-select: text; }
