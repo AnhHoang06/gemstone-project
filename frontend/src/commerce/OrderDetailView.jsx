@@ -9,6 +9,7 @@ import { adminNextStatuses, orderLabels } from "./orderStatus";
 import { formatPrice } from "../utils/formatPrice";
 import { cancelCustomerOrder } from "./orderActions";
 import OrderStatusBadge from "./OrderStatusBadge";
+import OrderShippingEditor from "./OrderShippingEditor";
 
 export default function OrderDetailView({ admin = false }) {
   const { id } = useParams();
@@ -45,7 +46,9 @@ export default function OrderDetailView({ admin = false }) {
           className={index <= steps.indexOf(order.status) ? "is-reached" : ""} aria-current={status === order.status ? "step" : undefined}>
           <span aria-hidden="true">{index + 1}</span>{orderLabels[status]}{status === order.status && <small>Hiện tại</small>}</li>)}</ol>}
       <section className="order-shipping"><h2>Thông tin nhận hàng</h2><strong>{order.recipientName}</strong>
-        <p>{order.recipientPhone}</p><p>{order.shippingAddress}</p>{order.note && <p className="order-secondary">Ghi chú: {order.note}</p>}</section>
+        <p>{order.recipientPhone}</p><p>{order.shippingAddress}</p>{order.note && <p className="order-secondary">Ghi chú: {order.note}</p>}
+        <OrderShippingEditor key={order.id} order={order} admin={admin} disabled={saving || refreshing} onSaved={refresh} onConflict={refresh} />
+      </section>
       <section className="order-shipping"><h2>Thanh toán</h2>
         <p>{order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng (COD)" : order.paymentMethod === "BankTransfer" ? "Chuyển khoản ngân hàng" : "Chưa ghi nhận phương thức (đơn cũ)"}</p>
         <p>{order.paymentStatus === "Paid" ? "Đã thanh toán" : order.paymentStatus === "Unpaid" ? "Chưa thanh toán" : "Chưa ghi nhận trạng thái thanh toán"}</p>

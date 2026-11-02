@@ -14,7 +14,7 @@ namespace GemstoneShop.Controllers;
 
 [ApiController, Route("api/orders"), Authorize]
 [TypeFilter(typeof(CommerceExceptionFilter))]
-public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfiguration configuration) : ControllerBase
+public partial class OrdersController(GemstoneShopContext db, OrderEvents events, IConfiguration configuration) : ControllerBase
 {
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 

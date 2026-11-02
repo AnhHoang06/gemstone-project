@@ -266,3 +266,12 @@ describe("user-scoped commerce lifecycle", () => {
     expect(hub.start).toHaveBeenCalledTimes(2);
   });
 });
+
+it('OrderUpdated invalidates order views through the existing connection', async () => {
+  session('A');
+  await act(async()=>render(<CommerceProvider><Probe /></CommerceProvider>));
+  mocks.get.mockImplementation(path=>Promise.resolve(path==='/cart'?cartResponse(1):{data:[{},{}]}));
+  await act(async()=>mocks.connections[0].handlers.OrderUpdated({orderId:52}));
+  expect(screen.getByTestId('orders').textContent).toBe('2');
+  expect(mocks.connections).toHaveLength(1);
+});
