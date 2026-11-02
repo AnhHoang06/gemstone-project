@@ -51,6 +51,7 @@ function CommerceSession({ token, children }) {
     };
     connection.on("NewOrder", sync);
     connection.on("OrderStatusChanged", sync);
+    connection.on("OrderUpdated", sync);
     connection.onreconnecting(() => { if (active) setConnectionState("Đang kết nối lại"); });
     connection.onreconnected(() => { if (active) { setConnectionState("Đã kết nối"); sync(); } });
     const start = async () => {
