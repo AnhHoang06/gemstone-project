@@ -8,6 +8,8 @@ import useOrdersData from "./useOrdersData";
 import { adminNextStatuses, orderLabels } from "./orderStatus";
 import { formatPrice } from "../utils/formatPrice";
 import { cancelCustomerOrder } from "./orderActions";
+import PaymentStatusBadge from "./PaymentStatusBadge";
+import { canConfirmPayment, canCancelOrder } from "./paymentStatus";
 import OrderStatusBadge from "./OrderStatusBadge";
 
 export default function OrderDetailView({ admin = false }) {
@@ -22,7 +24,8 @@ export default function OrderDetailView({ admin = false }) {
     if (submitting.current) return;
     submitting.current = true; setSaving(true); setActionError("");
     try {
-      if (admin) await api.put(`/orders/admin/${id}/status`, { status });
+      if (admin && status === "ConfirmPayment") await api.post(`/orders/admin/${id}/confirm-payment`);
+      else if (admin) await api.put(`/orders/admin/${id}/status`, { status });
       else await cancelCustomerOrder(id);
       if (token !== getSessionToken()) return;
       setConfirmCancel(false); refresh(); void refreshCart();
@@ -30,7 +33,13 @@ export default function OrderDetailView({ admin = false }) {
       if (token === getSessionToken()) { setActionError(apiError(err, "Không cập nhật được đơn hàng. Hãy tải lại trước khi thử lại.")); refresh(); }
     } finally { submitting.current = false; setSaving(false); }
   }
-  const actions = order ? (admin ? adminNextStatuses[order.status] || [] : order.status === "Pending" ? ["Cancelled"] : []) : [];
+  const baseActions = order ? (admin ? adminNextStatuses[order.status] || [] : order.status === "Pending" ? ["Cancelled"] : []) : [];
+  const actions = baseActions.filter(status => {
+    if (status === "Cancelled") return canCancelOrder(order);
+    if (order.paymentMethod === "BankTransfer") return order.status !== "Pending" && order.paymentStatus === "Paid";
+    return true;
+  });
+  if (admin && order && canConfirmPayment(order)) actions.unshift("ConfirmPayment");
   return <main className={admin ? "admin-page" : "container commerce-page"}>
     <Link to={admin ? "/admin/orders" : "/orders"}>← Danh sách đơn hàng</Link><h1>Đơn hàng #{id}</h1>
     <p className="order-secondary" role="status">Cập nhật trực tiếp: {connectionState}</p><button className="btn btn-outline" disabled={loading || refreshing || saving} onClick={refresh}>{refreshing ? "Đang cập nhật…" : "Tải lại"}</button>
@@ -48,15 +57,20 @@ export default function OrderDetailView({ admin = false }) {
         <p>{order.recipientPhone}</p><p>{order.shippingAddress}</p>{order.note && <p className="order-secondary">Ghi chú: {order.note}</p>}</section>
       <section className="order-shipping"><h2>Thanh toán</h2>
         <p>{order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng (COD)" : order.paymentMethod === "BankTransfer" ? "Chuyển khoản ngân hàng" : "Chưa ghi nhận phương thức (đơn cũ)"}</p>
-        <p>{order.paymentStatus === "Paid" ? "Đã thanh toán" : order.paymentStatus === "Unpaid" ? "Chưa thanh toán" : "Chưa ghi nhận trạng thái thanh toán"}</p>
-        {!admin && order.paymentMethod === "BankTransfer" && order.paymentStatus === "Unpaid" && order.status !== "Cancelled" && <Link to={`/payment/${id}`}>Hướng dẫn chuyển khoản</Link>}
+        <p><PaymentStatusBadge order={order} /></p>
+        {order.paidAt && <p>Thời gian thanh toán: {new Date(order.paidAt).toLocaleString("vi-VN")}</p>}
+        {admin && canConfirmPayment(order) && <p className="notice">Khách đã báo chuyển khoản. Chỉ xác nhận sau khi đối chiếu tiền thực nhận trong tài khoản ngân hàng.</p>}
+        {order.paymentReportedAt && <p>Khách báo chuyển khoản: {new Date(order.paymentReportedAt).toLocaleString("vi-VN")}</p>}
+        {order.paymentStatus === "Paid" && ["Pending", "Confirmed"].includes(order.status) && <p className="order-secondary">Đơn đã thanh toán cần cửa hàng xử lý thủ công nếu muốn hủy; chưa hỗ trợ hoàn tiền tự động.</p>}
+        {!admin && order.paymentMethod === "BankTransfer" && order.paymentStatus === "Unpaid" && order.status === "Pending" && <Link to={`/payment/${id}`}>Xem thông tin chuyển khoản</Link>}
       </section>
       <section className="order-items"><h2>Sản phẩm trong đơn <span className="order-secondary">({order.items.reduce((sum, item) => sum + item.quantity, 0)})</span></h2>
       <div className="table-scroll"><table className="shop-table order-items-table"><thead><tr><th>Sản phẩm</th><th>Số lượng</th><th>Đơn giá lúc đặt</th><th>Thành tiền</th></tr></thead>
         <tbody>{order.items.map(i => <tr key={i.productId}><td>{i.productName}{!admin && order.status === "Completed" && <OrderReviewLink productId={i.productId} />}</td><td>{i.quantity}</td><td>{formatPrice(i.unitPrice)}</td><td>{formatPrice(i.lineTotal)}</td></tr>)}</tbody></table></div>
       <p className="order-detail-total">Tổng: <strong>{formatPrice(order.totalAmount)}</strong></p></section>
+      {admin && order.status === "Shipping" && order.paymentMethod === "COD" && order.paymentStatus === "Unpaid" && <p className="notice">Chỉ hoàn tất khi đã giao hàng và thu đủ tiền COD. Thao tác sẽ ghi nhận đã thanh toán.</p>}
       <div className="commerce-actions order-detail-actions">{actions.map(status => <button className="btn btn-outline" key={status} disabled={saving || refreshing}
-        onClick={() => status === "Cancelled" ? setConfirmCancel(true) : change(status)}>{saving ? "Đang cập nhật..." : status === "Cancelled" ? "Hủy đơn" : `Chuyển: ${orderLabels[status]}`}</button>)}</div>
+        onClick={() => status === "Cancelled" ? setConfirmCancel(true) : change(status)}>{saving ? "Đang cập nhật..." : status === "Cancelled" ? "Hủy đơn" : status === "ConfirmPayment" ? "Xác nhận đã nhận thanh toán" : status === "Confirmed" ? "Xác nhận đơn hàng" : `Chuyển: ${orderLabels[status]}`}</button>)}</div>
       {confirmCancel && actions.includes("Cancelled") && <div className="notice" role="group" aria-label="Xác nhận hủy đơn">
         <p>Hủy đơn này? Sản phẩm sẽ được hoàn lại tồn kho.</p><button className="btn btn-danger" disabled={saving} onClick={() => change("Cancelled")}>Xác nhận hủy</button>
         <button className="btn btn-outline" disabled={saving} onClick={() => setConfirmCancel(false)}>Giữ đơn</button></div>}

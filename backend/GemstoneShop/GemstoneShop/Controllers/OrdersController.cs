@@ -14,7 +14,7 @@ namespace GemstoneShop.Controllers;
 
 [ApiController, Route("api/orders"), Authorize]
 [TypeFilter(typeof(CommerceExceptionFilter))]
-public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfiguration configuration) : ControllerBase
+public partial class OrdersController(GemstoneShopContext db, OrderEvents events, IConfiguration configuration) : ControllerBase
 {
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -28,7 +28,7 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfi
         var orders = await query.OrderByDescending(o => o.Id).Select(o => new
         {
             o.Id, o.UserId, o.RecipientName, o.TotalAmount, o.CreatedAt, Status = o.Status.Name,
-            o.PaymentMethod, o.PaymentStatus, o.PaidAt,
+            o.PaymentMethod, o.PaymentStatus, o.PaidAt, o.PaymentReportedAt,
             ItemCount = o.OrderDetails.Sum(d => d.Quantity)
         }).ToListAsync(ct);
         return Ok(orders);
@@ -40,7 +40,7 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfi
         {
             o.Id, o.UserId, o.RecipientName, o.RecipientPhone, o.ShippingAddress, o.Note,
             o.TotalAmount, o.CreatedAt, o.UpdatedAt, Status = o.Status.Name,
-            o.PaymentMethod, o.PaymentStatus, o.PaidAt,
+            o.PaymentMethod, o.PaymentStatus, o.PaidAt, o.PaymentReportedAt,
             Items = o.OrderDetails.OrderBy(d => d.Id).Select(d => new
             { d.ProductId, d.ProductName, d.Quantity, d.UnitPrice, LineTotal = d.UnitPrice * d.Quantity }).ToList()
         }).SingleOrDefaultAsync(ct);
@@ -53,14 +53,18 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfi
     {
         var order = await Visible(false).Where(o => o.Id == id).Select(o => new
         {
-            o.Id, o.TotalAmount, o.PaymentMethod, o.PaymentStatus, o.PaidAt, Status = o.Status.Name
+            o.Id, o.TotalAmount, o.PaymentMethod, o.PaymentStatus, o.PaidAt, o.PaymentReportedAt, Status = o.Status.Name
         }).SingleOrDefaultAsync(ct);
         if (order == null) return NotFound(new { message = "Không tìm thấy đơn hàng." });
         var bank = configuration["Payment:BankTransfer:BankName"]?.Trim();
         var account = configuration["Payment:BankTransfer:AccountNumber"]?.Trim();
         var holder = configuration["Payment:BankTransfer:AccountHolder"]?.Trim();
-        var configured = !string.IsNullOrWhiteSpace(bank) && !string.IsNullOrWhiteSpace(account) && !string.IsNullOrWhiteSpace(holder);
-        return Ok(new { order, transferContent = $"DH{order.Id}", bankConfigured = configured,
+        var bin = configuration["Payment:BankTransfer:BankBin"]?.Trim();
+        var configured = BankTransferQr.ValidAccount(bin, account) && !string.IsNullOrWhiteSpace(bank) && !string.IsNullOrWhiteSpace(account) && !string.IsNullOrWhiteSpace(holder);
+        var eligible = order.PaymentMethod == "BankTransfer" && order.PaymentStatus == "Unpaid" && order.Status == "Pending";
+        var payload = configured && eligible ? BankTransferQr.Payload(bin, account, order.TotalAmount, order.Id) : null;
+        return Ok(new { order, qrImage = payload == null ? null : BankTransferQr.Image(payload),
+            qrError = configured && eligible && payload == null ? "Số tiền đơn không hỗ trợ mã QR. Vui lòng liên hệ cửa hàng." : null, transferContent = $"DH{order.Id}", bankConfigured = configured,
             bankName = configured ? bank : null, accountNumber = configured ? account : null, accountHolder = configured ? holder : null });
     }
     [HttpGet("{id:int}")] public Task<IActionResult> MineDetail(int id, CancellationToken ct) => Detail(id, false, ct);
@@ -154,14 +158,23 @@ public class OrdersController(GemstoneShopContext db, OrderEvents events, IConfi
             owner = order.UserId;
             var current = order.Status.Name;
             if (current == target) return Ok(new { status = current }); // idempotent retry, no stock change
+            if (target == "Cancelled" && order.PaymentStatus == "Paid")
+                return Conflict(new { message = "Đơn đã thanh toán cần cửa hàng xử lý thủ công; chưa hỗ trợ hoàn tiền tự động." });
+            if (order.PaymentMethod == "BankTransfer" && target != "Cancelled" &&
+                (current == "Pending" || order.PaymentStatus != "Paid"))
+                return Conflict(new { message = "Cần xác nhận đã nhận thanh toán trước khi xử lý đơn chuyển khoản." });
             var allowed = target == "Cancelled" ? current == "Pending" || (admin && current == "Confirmed")
                 : admin && ((current == "Pending" && target == "Confirmed") ||
                     (current == "Confirmed" && target == "Shipping") || (current == "Shipping" && target == "Completed"));
             if (!allowed) return Conflict(new { message = "Trạng thái đơn đã thay đổi hoặc không cho phép thao tác này. Hãy tải lại đơn." });
             var status = await db.OrderStatuses.SingleOrDefaultAsync(s => s.Name == target, ct);
             if (status == null) return BadRequest(new { message = "Trạng thái không hợp lệ." });
+            var now = DateTime.UtcNow;
+            var collectCod = target == "Completed" && order.PaymentMethod == "COD" && order.PaymentStatus == "Unpaid";
             var changed = await db.Orders.Where(o => o.Id == id && o.StatusId == order.StatusId)
-                .ExecuteUpdateAsync(set => set.SetProperty(o => o.StatusId, status.Id).SetProperty(o => o.UpdatedAt, DateTime.UtcNow), ct);
+                .ExecuteUpdateAsync(set => set.SetProperty(o => o.StatusId, status.Id).SetProperty(o => o.UpdatedAt, now)
+                    .SetProperty(o => o.PaymentStatus, o => collectCod ? "Paid" : o.PaymentStatus)
+                    .SetProperty(o => o.PaidAt, o => collectCod ? now : o.PaidAt), ct);
             if (changed != 1) return Conflict(new { message = "Đơn vừa được cập nhật. Vui lòng tải lại." });
             if (target == "Cancelled")
                 foreach (var item in order.OrderDetails.OrderBy(d => d.ProductId))
