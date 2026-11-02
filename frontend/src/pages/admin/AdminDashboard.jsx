@@ -88,7 +88,7 @@ export default function AdminDashboard() {
           metric={metric} setMetric={setMetric} mixMetric={mixMetric} setMixMetric={setMixMetric} /></Suspense>
       </>}
     <details className="analytics-notes"><summary>Cách đọc báo cáo</summary>
-      <p>Đơn Unpaid, trạng thái thanh toán chưa rõ, đơn chưa hoàn tất và đơn đã hủy không được tính. Hệ thống hiện chưa có màn hình xác nhận thanh toán; không tự coi COD hoặc thao tác “Tôi đã chuyển khoản” là Paid.</p>
+      <p>Đơn Unpaid, trạng thái thanh toán chưa rõ, đơn chưa hoàn tất và đơn đã hủy không được tính. Chuyển khoản chỉ được ghi Paid khi Admin xác nhận đã nhận tiền; COD được ghi Paid khi hoàn tất giao hàng. Báo chuyển khoản chưa phải là thanh toán.</p>
       <p>Khi lọc danh mục/sản phẩm, doanh thu chỉ gồm các dòng hàng phù hợp, không gồm toàn bộ giá trị đơn có nhiều loại hàng. Biểu đồ cơ cấu giữ phạm vi danh mục để so sánh khi chọn một sản phẩm.</p>
       <p>Sản phẩm và danh mục đang ẩn vẫn có lịch sử. Phân loại dùng danh mục hiện tại vì đơn hàng chưa lưu danh mục lịch sử. Thời gian là ngày tạo đơn UTC, không phải ngày nhận tiền hoặc ngày hoàn tất.</p>
     </details>
