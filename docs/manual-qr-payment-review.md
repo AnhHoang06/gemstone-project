@@ -76,3 +76,7 @@ Follow-up files changed:
 - frontend/src/styles/cart-checkout.css
 - tests/payment.integration.mjs
 - docs/manual-qr-payment-review.md
+
+## Reconciliation status (2026-11-03)
+
+The seven-file follow-up is now committed as 57fc9b0 on the QR branch and integrated as abd5a5e on codex/restore-intended-state. It is no longer pending uncommitted work. User Secrets and the separate runtime image copy were not included in those commits. No remote push was performed.

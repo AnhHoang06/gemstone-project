@@ -18,7 +18,7 @@ function fill() {
 it('renders real contact form without invented contact information', () => {
   mount();
   expect(screen.getByRole('heading', { name: 'Liên hệ Gem Aurelia' })).toBeTruthy();
-  expect(screen.getByText('Thông tin liên hệ đang được cập nhật.')).toBeTruthy();
+  expect(screen.queryByRole('heading', { name: 'Thông tin liên hệ' })).toBeNull();
   expect(screen.getByRole('link', { name: 'Đặt lịch tư vấn' }).getAttribute('href')).toBe('/hen-lich');
   expect(screen.getByTestId('live-chat')).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Gửi liên hệ' }).closest('form').noValidate).toBe(true);

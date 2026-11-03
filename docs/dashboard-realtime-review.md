@@ -59,3 +59,7 @@ No backend/schema changes or SQL deployment scripts are required for this fix. E
 - frontend/src/pages/admin/AdminDashboard.realtime.test.jsx
 - tests/dashboard-realtime.integration.mjs
 - docs/dashboard-realtime-review.md
+
+## Reconciled payment baseline (2026-11-03)
+
+Manual QR confirmation is now integrated on the restoration branch. The realtime suite uses customer payment-reported and Admin confirm-payment APIs, not a direct SQL Paid fixture. COD completion atomically changes payment to Paid and adds revenue. Earlier baseline notes describing PR #17 as missing are historical, not the current reconciled behavior. Browser visual limitations still apply.

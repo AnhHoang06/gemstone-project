@@ -43,9 +43,11 @@ try {
   async function shipping(method) {
     expect(await call(customer.token, 'POST', `/cart/items/${pid}`, { quantity: 2 }), 200);
     const id = expect(await call(customer.token, 'POST', '/orders', { requestId: randomUUID(), recipientName: tag, recipientPhone: '0900000000', shippingAddress: 'Test only', paymentMethod: method }), 200).orderId;
-    // develop has no bank-confirm API yet. Fixture represents money recognized before fulfilment.
-    if(method === 'BankTransfer') sql(`UPDATE Orders SET PaymentStatus='Paid',PaidAt=SYSUTCDATETIME() WHERE Id=${id} AND UserId=${customer.id}`);
-    for(const status of ['Confirmed','Shipping']) expect(await call(admin.token, 'PUT', `/orders/admin/${id}/status`, {status}),200);
+    if(method === 'BankTransfer') {
+      expect(await call(customer.token, 'POST', `/orders/${id}/payment-reported`),200);
+      expect(await call(admin.token, 'POST', `/orders/admin/${id}/confirm-payment`),200);
+    } else expect(await call(admin.token, 'PUT', `/orders/admin/${id}/status`, {status:'Confirmed'}),200);
+    expect(await call(admin.token, 'PUT', `/orders/admin/${id}/status`, {status:'Shipping'}),200);
     return id;
   }
   const bank = await shipping('BankTransfer');
@@ -78,9 +80,9 @@ try {
   expect(await call(admin.token,'PUT',`/orders/admin/${cod}/status`,{status:'Completed'}),200);
   const codAfter=await detail(cod);
   assert.equal(codAfter.status,'Completed');
-  assert.equal(codAfter.paymentStatus,'Unpaid','Current develop does not include the COD collection feature from PR #17');
-  assert.equal((await analytics(paths[2])).summary.revenue,prior.summary.revenue);
-  console.log('BASELINE LIMITATION confirmed: develop COD completion remains Unpaid, correctly excluded from revenue. PR #17 is a separate dependency.');
+  assert.equal(codAfter.paymentStatus,'Paid','COD is collected atomically on completion');
+  assert.equal((await analytics(paths[2])).summary.revenue,prior.summary.revenue+2000000);
+  console.log('PASS: COD completion collects payment and adds exactly 2,000,000 revenue using the integrated payment flow.');
 } finally {
   if(hub) await hub.stop();
   if (users.length) {

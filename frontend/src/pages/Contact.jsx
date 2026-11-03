@@ -37,7 +37,7 @@ function HoursCard() {
 
 function ContactInfoCard() {
   const socials = (site.socialLinks || []).filter(link => link?.label && /^https?:\/\//i.test(link.url || ""));
-  if (!site.address && !site.phone && !site.email && socials.length === 0) return <section className="contact-card"><h2>Thông tin liên hệ</h2><p>Thông tin liên hệ đang được cập nhật.</p></section>;
+  if (!site.address && !site.phone && !site.email && socials.length === 0) return null;
   return <section className="contact-card" aria-labelledby="contact-info">
     <h2 id="contact-info">Thông tin liên hệ</h2>
     <ul className="contact-info-list">
