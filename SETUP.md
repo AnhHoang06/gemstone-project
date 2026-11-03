@@ -74,6 +74,8 @@ Open **http://localhost:2222** (use `localhost`, not `127.0.0.1`, because CORS o
 
 ## 5. Demo accounts
 
+**DEMO ACCOUNTS FOR GRADING/PRESENTATION ONLY.** Both accounts are included in the demo database backup. The passwords are filled in only in the copy of this file inside the submission package, not in the public repository.
+
 | Role | Email | Password |
 |---|---|---|
 | Admin | `<<ADMIN_EMAIL>>` | `<<ADMIN_PASSWORD>>` |
@@ -86,7 +88,7 @@ You can also register a new customer from the website. The roughly 220 generated
 Customer (storefront):
 - `/products` — catalog with category tree, Vietnamese search (with or without accents), filters; product detail with specs, reviews, Q&A, related and recently viewed products.
 - Wishlist, cart, checkout with **COD** or **bank transfer**; `/payment/{id}` shows the QR, copy buttons and "Tôi đã chuyển khoản".
-- `/orders` — order history, status updates in real time, cancel and shipping-info edit while the order is still Pending.
+- `/orders` — order history with real-time status updates; cancel an order, or edit its shipping information while it is Pending or Confirmed.
 - Review a product after a Completed order.
 - `/hen-lich` — book a consultation; `/appointments` — my appointments.
 - `/lien-he` — live chat with staff and the contact form; `/ho-tro` — support center.
