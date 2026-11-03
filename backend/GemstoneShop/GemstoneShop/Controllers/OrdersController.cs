@@ -63,7 +63,7 @@ public partial class OrdersController(GemstoneShopContext db, OrderEvents events
         var configured = BankTransferQr.ValidAccount(bin, account) && !string.IsNullOrWhiteSpace(bank) && !string.IsNullOrWhiteSpace(account) && !string.IsNullOrWhiteSpace(holder);
         var eligible = order.PaymentMethod == "BankTransfer" && order.PaymentStatus == "Unpaid" && order.Status == "Pending";
         var payload = configured && eligible ? BankTransferQr.Payload(bin, account, order.TotalAmount, order.Id) : null;
-        return Ok(new { order, qrImage = payload == null ? null : BankTransferQr.Image(payload),
+        return Ok(new { order, transferAmount = order.TotalAmount.ToString("0.############################", System.Globalization.CultureInfo.InvariantCulture), qrImage = payload == null ? null : BankTransferQr.Image(payload),
             qrError = configured && eligible && payload == null ? "Số tiền đơn không hỗ trợ mã QR. Vui lòng liên hệ cửa hàng." : null, transferContent = $"DH{order.Id}", bankConfigured = configured,
             bankName = configured ? bank : null, accountNumber = configured ? account : null, accountHolder = configured ? holder : null });
     }

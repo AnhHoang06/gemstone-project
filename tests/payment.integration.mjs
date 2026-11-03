@@ -55,6 +55,15 @@ try {
     expect(await call(b.token, 'GET', `/orders/${id}/payment`), 404);
     const payment = expect(await call(a.token, 'GET', `/orders/${id}/payment`), 200);
     assert.equal(payment.transferContent, `DH${id}`);
+    if (process.env.PAYMENT_EXPECT_BANK != null) assert.equal(payment.bankConfigured, process.env.PAYMENT_EXPECT_BANK === '1');
+    if (payment.bankConfigured) {
+      assert.equal(payment.bankName, process.env.Payment__BankTransfer__BankName);
+      assert.equal(payment.accountNumber, process.env.Payment__BankTransfer__AccountNumber);
+      assert.equal(payment.accountHolder, process.env.Payment__BankTransfer__AccountHolder);
+    }
+    assert.equal(payment.transferAmount, '2000000');
+    const spoofed = expect(await call(a.token, 'GET', `/orders/${id}/payment?amount=1&transferContent=FAKE`), 200);
+    assert.equal(spoofed.transferAmount, '2000000'); assert.equal(spoofed.transferContent, `DH${id}`); assert.equal(spoofed.qrImage,payment.qrImage);
     if (!payment.bankConfigured) { assert.equal(payment.accountNumber, null); assert.equal(payment.qrImage, null); }
     if (method === 'COD') assert.equal(payment.qrImage, null);
     if (method === 'BankTransfer' && payment.bankConfigured) {
@@ -68,7 +77,7 @@ try {
       assert.equal(account['00'], process.env.Payment__BankTransfer__BankBin); assert.equal(account['01'], payment.accountNumber);
       let crc=65535; for(const byte of Buffer.from(decoded.slice(0,-4))) { crc^=byte<<8; for(let i=0;i<8;i++) crc=((crc<<1)^((crc&32768)?4129:0))&65535; }
       assert.equal(crc.toString(16).toUpperCase().padStart(4,'0'),qr['63']);
-      console.log('PASS: independent PNG QR decode, exact amount, bank/account, DH reference and CRC');
+      console.log(`PASS: Order #${id}, PNG QR decode, exact 2000000 VND, bank/account, DH${id} and CRC`);
     }
     const mismatch = await call(a.token, 'POST', '/orders', { ...body, paymentMethod: method === 'COD' ? 'BankTransfer' : 'COD' });
     assert.equal(expect(mismatch, 409).code, 'request_mismatch');
@@ -125,6 +134,8 @@ try {
   const paid = await detail(bankId);
   assert.deepEqual(paid.items, lineItemsBefore);
   assert.deepEqual(expect(await call(a.token, 'GET', '/cart'), 200), cartBefore);
+  const paidInfo = expect(await call(a.token, 'GET', `/orders/${bankId}/payment`), 200);
+  assert.equal(paidInfo.order.paymentStatus, 'Paid'); assert.equal(paidInfo.qrImage, null);
   assert.equal(paid.paymentStatus, 'Paid'); assert.equal(paid.status, 'Confirmed'); assert.ok(paid.paidAt);
   assert.equal(scalar(`SELECT Stock FROM Products WHERE Id=${p2}`), stockBefore);
   expect(await call(admin.token, 'POST', `/orders/admin/${bankId}/confirm-payment`), 409);
@@ -183,6 +194,10 @@ try {
   const fractional = expect(await call(a.token, 'GET', `/orders/${invalidId}/payment`), 200);
   assert.equal(fractional.qrImage, null, 'Unsupported fractional dong must never be rounded into a QR');
   if(fractional.bankConfigured) assert.ok(fractional.qrError);
+  assert.equal(fractional.transferAmount, '1.25');
+  sql(`UPDATE Orders SET TotalAmount=0 WHERE Id=${invalidId}`);
+  const zero = expect(await call(a.token, 'GET', `/orders/${invalidId}/payment`), 200);
+  assert.equal(zero.qrImage, null); if(zero.bankConfigured) assert.ok(zero.qrError);
   console.log('PASS: invalid unpaid Shipping state rejected; unsupported QR amount fails explicitly');
 
   expect(await call(a.token, 'POST', `/cart/items/${p}`, { quantity: 1 }), 200);

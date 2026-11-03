@@ -56,3 +56,25 @@ Browser visual verification at 1366px/390px and a real bank-app scan are tracked
 ## Future extension — documentation only
 
 A future VNPay/MoMo/provider webhook, bank webhook or virtual-account callback must verify signature/authenticity, beneficiary, amount, reference and replay identity on the backend before applying Paid + Confirmed through the same concurrency controls. No gateway, callback endpoint, fake webhook, automatic verification or refund implementation is included here.
+
+## Local setup and troubleshooting (QR follow-up)
+
+The complete manual flow/QR implementation currently lives in PR #17. At this check, origin/develop is f30ba63 and does **not** contain it. Running an older develop API/frontend cannot display this implementation. Do not merge branches automatically just to configure a bank.
+
+Set the following in your local shell before starting the backend. These are placeholders only: replace them locally with bank-approved details; never transfer to example values.
+
+```powershell
+$env:Payment__BankTransfer__BankName = '<REAL_BANK_NAME>'
+$env:Payment__BankTransfer__BankBin = '<REAL_SIX_DIGIT_BANK_BIN>'
+$env:Payment__BankTransfer__AccountNumber = '<REAL_ACCOUNT_NUMBER>'
+$env:Payment__BankTransfer__AccountHolder = '<REAL_ACCOUNT_HOLDER>'
+dotnet run --project backend/GemstoneShop/GemstoneShop/GemstoneShop.csproj
+```
+
+Alternatively, use the project's User Secrets store (`GemstoneShop-local-auth`) with the equivalent colon-separated keys (`Payment:BankTransfer:BankBin`, etc.). Restart the API after environment changes. No real bank values have been configured or committed by this task. Use **BankBin** and **AccountHolder**, not the illustrative BankId/AccountName names in other proposals.
+
+If “Thông tin chuyển khoản hiện chưa được cấu hình.” remains visible, check all four keys in the actual API process, the correct backend port/branch, nonempty name/holder, six numeric BIN digits and a 1–19-character ASCII alphanumeric account. The UI intentionally hides the QR/report button until this validation passes. A syntactically valid configuration still needs a banking-app beneficiary check by the team.
+
+`GET /api/orders/{id}/payment` remains owner-only and now also returns `transferAmount`: an invariant decimal **string** from the persisted Order total, so the copy action never introduces locale separators or number rounding. Amount/reference query parameters are ignored. QR/account/ref and amount are never accepted from React. QR remains generated in memory, not stored in DB/files or hotlinked.
+
+Copy buttons use the browser Clipboard API after a user click. They copy the server account number, exact amount string and reference. Success shows “Đã sao chép”; permission failure shows a manual-copy message. HTTPS or a trustworthy localhost origin is required for Clipboard API support. No clipboard read is performed.

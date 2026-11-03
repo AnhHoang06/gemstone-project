@@ -72,3 +72,11 @@
 /* Local bank QR: retain the white quiet zone, including on narrow screens. */
 .payment-qr { display: block; width: 264px; max-width: 100%; height: auto; margin: 16px auto; background: #fff; }
 .payment-panel .payment-bank dd { min-width: 0; overflow-wrap: anywhere; user-select: text; }
+
+.payment-bank dd { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.payment-bank dd > span, .payment-bank dd > strong { min-width: 0; overflow-wrap: anywhere; }
+.payment-panel .payment-copy { min-height: 36px; padding: .375rem .625rem; font-size: .75rem; flex-shrink: 0; }
+@media (max-width: 480px) {
+  .payment-panel .payment-bank { grid-template-columns: minmax(0, 1fr); gap: .375rem; }
+  .payment-panel .payment-bank dd { margin-bottom: .75rem; }
+}

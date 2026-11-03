@@ -46,3 +46,33 @@ No real banking-app scan or actual transfer was performed. QR syntax/decoding ca
 Run `backend/GemstoneShop/GemstoneShop/Database/PaymentReported.sql` after existing Person3.sql/Payment.sql, before deploying. Required keys and state rules are documented in Payment.README.md beside the script. No sample script is required.
 
 No gateway, webhook, automatic bank verification, override, refund, scaffold edits, analytics formula change, or unrelated feature integration. `.payment-order-worktree/` and `docs/product-image-list.md` remain unrelated/untracked and are not included.
+
+## QR/copy follow-up — 2026-11-03
+
+Latest origin/develop remains f30ba63 and does not yet contain PR #17. This follow-up reuses the existing cb76765 manual-payment implementation (which already contains that complete latest develop baseline) in `.payment-qr-worktree`; it does not merge the feature into develop or copy the unrelated Dashboard/Shipping work.
+
+Inspection found all four bank keys unset in tracked/local settings, the GemstoneShop-local-auth User Secrets file and the current shell. A separately running backend may have different process settings; those were not claimed to have been inspected. No real bank information was invented, configured, printed or committed. The missing-configuration message is correct until the team supplies real details.
+
+Changes: exact server-derived transferAmount string added to the existing owner-only payment response; account/amount/reference copy actions with success/failure feedback; explicit COD/missing-config text; responsive bank rows; updated setup instructions and tests. Reused QRCoder 1.8.1 and the existing NAPAS payload helper; no new dependency, schema, QR storage, external service or payment-state changes.
+
+Verification:
+- Backend build PASS (0 warnings/errors).
+- Full frontend lint PASS; 190 React tests / 25 files PASS; production build PASS (existing >500 kB main-chunk warning).
+- Payment integration PASS with valid test bank settings, missing settings, and invalid BIN. PAYMENT_EXPECT_BANK=1/0 makes configuration expectations explicit.
+- Real local fixture order #2686: decoded PNG contained 2000000 VND, configured test BIN/account and DH2686; CRC matched. Query-supplied fake amount/reference did not change payment response or PNG. Fixture rows were removed afterwards.
+- Zero/fractional amounts produce no QR; copy string retains exact persisted decimal. Paid/COD/ineligible orders return no QR. Ownership/401/404, report-only state, admin confirmation concurrency and COD completion remain covered.
+- Person3 and analytics integration PASS.
+- React checks copy success/denial/unavailable clipboard, duplicate clicks and previous-session responses, bank display, QR dimensions, COD/Paid/reported/missing-config states.
+
+Manual browser/phone verification is still NOT PASS: localhost remains blocked by the browser's saved permission/managed policy; no real bank details are configured, no banking-app scan was performed, and no money was transferred. Independent image decoding is automated verification, not a real-bank acceptance test.
+
+The follow-up remains uncommitted/unpushed pending review. See Database/Payment.README.md for placeholder-only local setup commands. The only schema prerequisite is the existing PaymentReported.sql from the manual flow, not a QR-specific migration.
+
+Follow-up files changed:
+- backend/GemstoneShop/GemstoneShop/Controllers/OrdersController.cs
+- backend/GemstoneShop/GemstoneShop/Database/Payment.README.md
+- frontend/src/pages/Payment.jsx
+- frontend/src/pages/Payment.test.jsx
+- frontend/src/styles/cart-checkout.css
+- tests/payment.integration.mjs
+- docs/manual-qr-payment-review.md

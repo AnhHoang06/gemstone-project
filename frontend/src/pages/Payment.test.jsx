@@ -7,11 +7,11 @@ import Payment from './Payment';
 import { CommerceContext } from '../commerce/context';
 import { saveSession } from '../auth/session';
 let payload;
-afterEach(() => { cleanup(); vi.resetAllMocks(); localStorage.clear(); });
+afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); });
 async function mount(overrides = {}) {
   saveSession({ token: 'A', role: 'Customer', fullName: 'A' });
   payload = { order: { id: 52, totalAmount: 6000000, paymentMethod: 'BankTransfer', paymentStatus: 'Unpaid', status: 'Pending', paymentReportedAt: null },
-    qrImage: 'data:image/png;base64,test', bankConfigured: true, bankName: 'Test bank', accountNumber: 'test-account', accountHolder: 'Test holder', transferContent: 'DH52', ...overrides };
+    qrImage: 'data:image/png;base64,test', bankConfigured: true, bankName: 'Test bank', accountNumber: 'test-account', accountHolder: 'Test holder', transferContent: 'DH52', transferAmount: '6000000', ...overrides };
   mocks.get.mockImplementation(async () => ({ data: structuredClone(payload) }));
   await act(async () => { render(<MemoryRouter initialEntries={['/payment/52']}><CommerceContext.Provider value={{ token: 'A', revision: 0 }}>
     <Routes><Route path="/payment/:id" element={<Payment />} /></Routes></CommerceContext.Provider></MemoryRouter>); });
@@ -61,7 +61,7 @@ it('does not invent bank details when configuration is missing', async () => {
   await mount({ bankConfigured: false });
   expect(screen.queryByText('test-account')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Tôi đã chuyển khoản' })).toBeNull();
-  expect(screen.getByRole('status').textContent).toContain('Chưa có thông tin ngân hàng');
+  expect(screen.getByRole('status').textContent).toContain('Thông tin chuyển khoản hiện chưa được cấu hình.');
 });
 it('does not offer transfer for a cancelled order', async () => {
   await mount({ order: { id: 52, paymentMethod: 'BankTransfer', paymentStatus: 'Unpaid', status: 'Cancelled', totalAmount: 1 } });
@@ -74,4 +74,51 @@ it('renders the local QR with exact order information and hides it after payment
   const qr = screen.getByRole('img', { name: /QR chuyển khoản đơn DH52/ });
   expect(qr.getAttribute('src')).toBe('data:image/png;base64,test');
   expect(qr.getAttribute('alt')).toContain('6.000.000');
+});
+
+it.each([['số tài khoản', 'test-account'], ['số tiền', '6000000'], ['nội dung chuyển khoản', 'DH52']])('copies backend %s without formatting or recomputing it', async (label, value) => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  vi.stubGlobal('navigator', { clipboard: { writeText } }); await mount();
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: `Sao chép ${label}` })));
+  expect(writeText).toHaveBeenCalledWith(value);
+  expect(screen.getByText('Đã sao chép')).toBeTruthy(); expect(mocks.post).not.toHaveBeenCalled();
+});
+it('does not show copy success when clipboard permission is denied', async () => {
+  vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } }); await mount();
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Sao chép số tài khoản' })));
+  expect(screen.queryByText('Đã sao chép')).toBeNull();
+  expect(screen.getByText(/Không thể sao chép/)).toBeTruthy();
+});
+it('COD displays its payment method without QR, copy controls or report action', async () => {
+  await mount({ order: { id: 52, paymentMethod: 'COD', paymentStatus: 'Unpaid', status: 'Pending', totalAmount: 6000000 } });
+  expect(screen.getByText('Thanh toán khi nhận hàng (COD)')).toBeTruthy();
+  expect(screen.queryByRole('img')).toBeNull();
+  expect(screen.queryByRole('button', { name: /Sao chép/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Tôi đã chuyển khoản' })).toBeNull();
+});
+it('QR has square reserved dimensions and responsive class, with all bank information visible', async () => {
+  await mount(); const qr = screen.getByRole('img');
+  expect(qr.getAttribute('width')).toBe(qr.getAttribute('height'));
+  expect(qr.className).toBe('payment-qr');
+  expect(screen.getByText('Test bank')).toBeTruthy(); expect(screen.getByText('Test holder')).toBeTruthy();
+});
+it('copies the exact amount string supplied by the backend, without deriving it from the display value', async () => {
+  const writeText=vi.fn().mockResolvedValue(undefined);vi.stubGlobal('navigator',{clipboard:{writeText}});
+  await mount({transferAmount:'6000000.25'});
+  await act(async()=>fireEvent.click(screen.getByRole('button',{name:'Sao chép số tiền'})));
+  expect(writeText).toHaveBeenCalledWith('6000000.25');
+});
+
+it('prevents duplicate copy requests and ignores completion from a previous session', async () => {
+  let finish; const writeText=vi.fn(()=>new Promise(resolve=>{finish=resolve;}));
+  vi.stubGlobal('navigator',{clipboard:{writeText}});await mount();
+  const button=screen.getByRole('button',{name:'Sao chép số tài khoản'});fireEvent.click(button);fireEvent.click(button);
+  expect(writeText).toHaveBeenCalledTimes(1);expect(button.disabled).toBe(true);
+  saveSession({token:'B',role:'Customer',fullName:'B'});await act(async()=>finish());
+  expect(screen.queryByText('Đã sao chép')).toBeNull();
+});
+it('supports manual copying when Clipboard API is unavailable', async () => {
+  vi.stubGlobal('navigator',{});await mount();
+  await act(async()=>fireEvent.click(screen.getByRole('button',{name:'Sao chép nội dung chuyển khoản'})));
+  expect(screen.getByText(/Không thể sao chép/)).toBeTruthy();expect(screen.getByText('DH52')).toBeTruthy();
 });
