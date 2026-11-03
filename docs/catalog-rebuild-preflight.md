@@ -2,7 +2,7 @@
 
 Date: 2026-11-03. Safe plan approved; rollback rehearsal and local application completed. See Catalog14.README.md for execution/results.
 
-The current source is `C:/Users/dhaca/Downloads/anh-da-quy-da-doi-ten.zip`, replacing the previous RAR. The ZIP contains exactly 14 images. Visual inspection confirms three Ruby, three Sapphire, three Emerald, three Amethyst, and two Diamond images. Existing category IDs are 1 Ruby, 2 Sapphire, 3 Emerald, 4 Diamond, 5 Amethyst. These are inspection findings, not IDs to hard-code in portable seed scripts.
+The current source is the user-provided archive `anh-da-quy-da-doi-ten.zip` (local download, not committed), replacing the previous RAR. The ZIP contains exactly 14 images. Visual inspection confirms three Ruby, three Sapphire, three Emerald, three Amethyst, and two Diamond images. Existing category IDs are 1 Ruby, 2 Sapphire, 3 Emerald, 4 Diamond, 5 Amethyst. These are inspection findings, not IDs to hard-code in portable seed scripts.
 
 | Source filename | Proposed product | Existing category | Normalized asset filename |
 |---|---|---|---|

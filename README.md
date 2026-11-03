@@ -3,7 +3,7 @@
 ASP.NET Core 8 + EF Core Database First + SQL Server; React 19 + Vite + Bootstrap; JWT and SignalR.
 Use `develop` as the integration base, not the legacy `main` branch.
 
-**Graders / quick start:** restore the demo database backup and follow [SETUP.md](SETUP.md). The section below is the developer setup for building a database from scripts.
+**Graders / quick start:** see [README_NopBai.md](README_NopBai.md) and [SETUP.md](SETUP.md) (restore `GemstoneShop_Final.bak`). Script order and demo data: [database/README_Database.md](database/README_Database.md). The section below is the developer setup for building a database from scripts.
 
 ## Local setup
 
@@ -32,7 +32,7 @@ sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -i "$schema/Consultat
 
 `ConsultationSampleData.sql` adds three consultation services — "Tư vấn thiết kế trang sức" (free, 60 min), "Kiểm tra & đánh giá đá quý" (500.000 ₫, 45 min), "Tư vấn bộ sưu tập & quà tặng" (free, 45 min) — and the weekly hours Mon–Sat 09:00–18:00, Sun 09:00–12:00, 60-minute slots, 2 customers per slot. It only inserts services (by name) and weekday rows that are missing, so hours already edited by an admin are kept; safe to rerun. Without it the booking page shows no services and every day as closed until an admin configures them.
 
-The 14-product demo catalog (images in `wwwroot/catalog-gems/`, orders, reviews) is distributed as the database backup described in [SETUP.md](SETUP.md). `Catalog14Rebuild.sql` documents how it was produced but only runs against the original local database ([details](backend/GemstoneShop/GemstoneShop/Database/Catalog14.README.md)); it cannot seed an empty database.
+The 14-product demo catalog (images in `wwwroot/catalog-gems/`, orders, reviews) is distributed only as the database backup `GemstoneShop_Final.bak` described in [SETUP.md](SETUP.md). `Catalog14Rebuild.sql` documents how it was produced but only runs against the original local database ([details](backend/GemstoneShop/GemstoneShop/Database/Catalog14.README.md)); it cannot seed an empty database.
 
 4. Start backend (local HTTP example; Development loads User Secrets):
 
