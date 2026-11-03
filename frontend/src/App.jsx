@@ -15,7 +15,6 @@ import Payment from "./pages/Payment";
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
-import TestCategories from "./pages/TestCategories";
 import Wishlist from "./pages/Wishlist";
 import LegacyProductRedirect from "./components/LegacyProductRedirect";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -67,7 +66,6 @@ function App() {
           <Route path="/products/:id" element={<LegacyProductRedirect />} />
         </Route>
 
-        <Route path="/test-categories" element={<TestCategories />} />
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
         <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>}/>

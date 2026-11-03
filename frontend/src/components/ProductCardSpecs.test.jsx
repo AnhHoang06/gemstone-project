@@ -7,7 +7,7 @@ import { getProductSpecs } from '../utils/productSpecs';
 import { WishlistContext } from '../wishlist/context';
 import { CommerceContext } from '../commerce/context';
 
-const fullProduct = { id: 11, name: 'Ruby Myanmar 1,2 ct', price: 52000000, stock: 2, carat: 1.2, color: 'Đỏ huyết bồ câu', clarity: 'VS1', cut: 'Oval', origin: 'Myanmar', certificateAuthority: 'GRS', imageUrl: '/sample-images/ruby-oval.svg' };
+const fullProduct = { id: 11, name: 'Ruby Myanmar 1,2 ct', price: 52000000, stock: 2, carat: 1.2, color: 'Đỏ huyết bồ câu', clarity: 'VS1', cut: 'Oval', origin: 'Myanmar', certificateAuthority: 'GRS', imageUrl: '/catalog-gems/ruby-oval.jpg' };
 
 function renderCard(product = fullProduct, props = {}) {
   const toggle = vi.fn(), mutateCart = vi.fn().mockResolvedValue(true);
@@ -126,7 +126,7 @@ it('covers only the image: heart, cart and detail links stay outside the panel a
   for (const element of [heart, cart, imageLink]) expect(group.contains(element)).toBe(false);
   expect(group.closest('.product-card__visual')).toBe(imageLink.closest('.product-card__visual'));
   expect(imageLink.getAttribute('href')).toBe('/product/11');
-  expect(within(imageLink).getByRole('img', { name: fullProduct.name }).getAttribute('src')).toContain('/sample-images/ruby-oval.svg');
+  expect(within(imageLink).getByRole('img', { name: fullProduct.name }).getAttribute('src')).toContain('/catalog-gems/ruby-oval.jpg');
 
   fireEvent.click(heart);
   expect(toggle).toHaveBeenCalledWith(11);

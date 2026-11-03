@@ -376,7 +376,7 @@ namespace GemstoneShop.Controllers
             var wasPrimary = image.IsPrimary;
 
             // Xóa file vật lý chỉ khi đó là ảnh upload riêng của sản phẩm này.
-            // Ảnh dùng chung (vd. /sample-images/...) thuộc repo và có thể đang được sản phẩm khác dùng.
+            // Ảnh dùng chung (vd. /catalog-gems/...) thuộc repo và có thể đang được sản phẩm khác dùng.
             var webRoot = Path.GetFullPath(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
             var ownUploadDir = Path.GetFullPath(Path.Combine(webRoot, "uploads", "products", id.ToString())) + Path.DirectorySeparatorChar;
             if (image.ImageUrl.StartsWith($"/uploads/products/{id}/", StringComparison.Ordinal))

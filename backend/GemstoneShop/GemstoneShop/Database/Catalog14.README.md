@@ -53,7 +53,7 @@ sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -v CatalogConsent=LOC
 sqlcmd -S '.\SQLEXPRESS' -d GemstoneShop -E -C -b -f 65001 -v CatalogConsent=LOCAL_SAMPLE_DATA SeedAsOf=2026-11-03 Apply=1 -i Catalog14Rebuild.sql
 ```
 
-A rerun detects Catalog14 and fails closed before mutations instead of duplicating records. Legacy DashboardSampleData, ReviewSampleData and DashboardReviewSampleData scripts now refuse to run over Catalog14. The old datasets must not be reseeded alongside this one.
+A rerun detects Catalog14 and fails closed before mutations instead of duplicating records. The legacy DashboardSampleData, ReviewSampleData, DashboardReviewSampleData and SampleData scripts have been removed from the repository; the old datasets must not be reseeded alongside this one.
 
 Optional `Catalog14Cleanup.sql` uses the same consent and Apply=0/1 switches. It deletes only scoped generated order/review/question records after external-adoption guards and makes generated products inactive. It retains product IDs, images and disabled users to preserve potential external references. It does **not** restore old demo data or enable an automatic reseed; inspect retained state before any further rebuild.
 

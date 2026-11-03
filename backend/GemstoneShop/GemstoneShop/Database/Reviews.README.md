@@ -84,15 +84,8 @@ For multiple API instances, a shared private upload volume is needed; SQL concur
 but local disk is not automatically replicated.
 No realtime review events; users reload or change filters to see moderation from another session.
 
-## Optional demo (never production schema)
-ReviewSampleData.sql requires SQLCMD variables ReviewSeedConsent=LOCAL_SAMPLE_DATA and SeedAsOf=YYYY-MM-DD.
-Creates 12 labeled products, one category, 20 disabled synthetic customers, one disabled synthetic Admin,
-20 Completed/Paid historical orders, 120 details/reviews, uneven helpful votes, 12 questions and 6 answers.
-Accounts use reserved example.invalid emails/non-dialable phones; the BCrypt hash is for a discarded random secret.
-No published usable credentials. ReviewDemo_v1 markers identify all records.
-ReviewSampleDataCleanup.sql requires the same consent and fails closed on externally adopted references.
-Do not remove markers. Running the seed again is a no-op if the complete demo exists.
-Demo orders naturally appear in sales analytics: use only a disposable/local development DB.
+## Demo data
+The review demo used for submission is part of the Catalog14 dataset (see Catalog14.README.md) and ships in the database backup. The older ReviewSampleData/DashboardReviewSampleData scripts were removed.
 
 ## Verification commands
 - dotnet build backend/GemstoneShop/GemstoneShop/GemstoneShop.csproj --nologo -p:NuGetAudit=false
@@ -102,9 +95,6 @@ Demo orders naturally appear in sales analytics: use only a disposable/local dev
 - PERSON3_API_URL=http://localhost:5121 node tests/reviews.integration.mjs
 - Existing person3/wishlist/payment/catalog/product-removal integration suites (local fixtures only).
   Wishlist uses WISHLIST_API_URL; product-removal uses PRODUCT_API_URL.
-- Optional tests/reviews.browser.mjs needs ReviewSampleData, Edge, Playwright (PLAYWRIGHT_MODULE override),
-  API 5121 and frontend 2222. CORS already permits frontend 2222; no CORS changes required.
-  Browser screenshots under docs/reviews; test accounts and their orders/reviews are cleaned after the run.
 
 ## Verified on 2026-10-29
 - Backend build: PASS, 0 warnings/errors.
@@ -119,28 +109,3 @@ Demo orders naturally appear in sales analytics: use only a disposable/local dev
 - Demo cleanup exercised inside an outer rollback transaction: PASS; all 120 demo reviews restored.
 - New module was based on origin/develop bfc6dae. Uncommitted dashboard/UI/seed work in the original checkout
   is intentionally outside this branch.
-
-## Additional sales-correlated dashboard review demo
-DashboardReviewSampleData.sql operates only on existing DashboardSeed_v1 products, orders and synthetic users.
-It requires the separate DashboardSampleData dataset; it does not create or modify purchases, users or products.
-Run with SQLCMD ReviewSeedConsent=LOCAL_SAMPLE_DATA. It ranks products by Completed sold units (ID breaks ties),
-then selects actual qualifying demo purchasers: up to 12 reviews for the highest third, 6 for the middle,
-3 for the lowest. Ratings are 4–5, 3–4, and 1–3 respectively. This correlation is **only a demo scenario**,
-never an application rule. Real displayed scores/counts continue to aggregate visible ProductReviews.
-Content starts with the visible [Mẫu DashboardReview_v1] marker. Existing reviews are never overwritten.
-DashboardReviewSampleDataCleanup.sql removes only marked reviews on matching demo user/product pairs and
-refuses cleanup if they acquired images/helpful votes. Run this cleanup before removing DashboardSeed data.
-
-Local result (2026-10-29): 453 new reviews / 64 products:
-- High sales: 22 products, 264 reviews, average 4.67.
-- Middle sales: 21 products, 126 reviews, average 3.50.
-- Low sales: 21 products, 63 reviews, average 2.00.
-Rerun added zero rows. Public API averages/counts matched SQL for all 64 products.
-Zero reviews lacked a corresponding Completed purchase. Existing ReviewDemo_v1 reviews were preserved.
-
-The DashboardSampleData dataset is maintained separately and is not required to deploy reviews.
-If that dataset has not been installed, skip DashboardReviewSampleData.sql; do not run it as a schema migration.
-SQL LIKE markers escape the underscore literally so cleanup cannot match a similarly named marker by wildcard.
-
-## Existing category taxonomy
-ReviewSampleData.sql now reuses existing Ruby/Sapphire/Emerald/Diamond/Amethyst roots and adds no categories. Product names have no sample suffix. Missing roots fail closed. Run DemoCatalogCleanup.sql for an existing older seed; order snapshots/reviews are preserved.
