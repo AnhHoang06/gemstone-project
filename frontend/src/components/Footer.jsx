@@ -1,34 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
+import { site } from '../config/site';
 
-function Footer() {
-  return (
-    <footer className="luxury-footer">
-      <div className="container">
-        <div className="row g-4">
-          <div className="col-lg-5">
-            <h2>Gem Aurelia</h2>
-            <p>
-              Điểm đến tuyển chọn Ruby, Sapphire, Emerald, Diamond và các dòng đá màu hiếm với thông tin xuất xứ,
-              chứng nhận và tiêu chuẩn thẩm định rõ ràng.
-            </p>
-          </div>
-          <div className="col-sm-6 col-lg-3">
-            <h3>Bộ sưu tập</h3>
-            <Link to="/shop?category=ruby">Ruby</Link>
-            <Link to="/shop?category=sapphire">Sapphire</Link>
-            <Link to="/shop?category=emerald">Emerald</Link>
-            <Link to="/shop?category=diamond">Diamond</Link>
-          </div>
-          <div className="col-sm-6 col-lg-4">
-            <h3>Chăm sóc khách hàng</h3>
-            <p>Showroom Saigon theo lịch hẹn</p>
-            <p>care@gemaurelia.example</p>
-            <p>Giao hàng bảo hiểm toàn cầu</p>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
+// Columns follow the mockup; a column with no verified data (site.js) is not rendered at all.
+export default function Footer() {
+  const hasContact = Boolean(site.address || site.phone || site.email);
+  const socials = (site.socialLinks || []).filter(link => link?.url && link?.label);
+  return <footer className="store-footer"><div className="store-container"><div className="store-footer-grid">
+    {hasContact && <section aria-labelledby="footer-contact"><h2 id="footer-contact">Thông tin liên hệ</h2>
+      {site.address && <p>{site.address}</p>}{site.phone && <a href={`tel:${site.phone}`}>{site.phone}</a>}{site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}</section>}
+    <section aria-labelledby="footer-links"><h2 id="footer-links">Liên kết</h2><Link to="/lien-he">Liên hệ</Link><Link to="/hen-lich">Hẹn lịch</Link><Link to="/shop">Thế giới đá quý</Link></section>
+    <section aria-labelledby="footer-care"><h2 id="footer-care">Chăm sóc khách hàng</h2><Link to="/account">Tài khoản</Link><Link to="/orders">Đơn hàng</Link><Link to="/cart">Giỏ hàng</Link><Link to="/wishlist">Yêu thích</Link><Link to="/ho-tro">Hỗ trợ</Link></section>
+    {socials.length > 0 && <section aria-labelledby="footer-social"><h2 id="footer-social">Mạng xã hội</h2>{socials.map(link => <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>)}</section>}
+  </div><div className="store-footer-bottom"><span>Gem Aurelia</span><span>Thanh toán khi nhận hàng (COD) · Chuyển khoản ngân hàng</span></div></div></footer>;
 }
-
-export default Footer;

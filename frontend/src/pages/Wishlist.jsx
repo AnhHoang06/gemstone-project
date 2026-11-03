@@ -1,26 +1,26 @@
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { wishlistItems } from "../data/products";
+import { useWishlist } from "../wishlist/context";
+import ProductSearchBar from "../components/ProductSearchBar";
 
 function Wishlist() {
-  // TODO: Replace static wishlist items with user-specific data after auth/backend wiring.
+  const { items, loading, busy, error, refresh } = useWishlist();
+  useEffect(() => { void refresh(); }, [refresh]);
   return (
-    <>
-      <section className="page-title">
-        <div className="container">
-          <h1>Yêu thích</h1>
-          <p>Danh sách yêu thích đang dùng dữ liệu minh họa để xem nhanh các viên đá đã lưu.</p>
-        </div>
-      </section>
-      <section className="products-section">
-        <div className="container">
-          <div className="product-grid">
-            {wishlistItems.map((product) => (
-              <ProductCard product={product} key={product.id} />
-            ))}
-          </div>
-        </div>
-      </section>
-    </>
+    <div className="store-container catalog-page wishlist-page">
+      <ProductSearchBar />
+      <nav className="catalog-breadcrumb" aria-label="Đường dẫn"><Link to="/">Trang chủ</Link><span aria-hidden="true">/</span><span aria-current="page">Yêu thích</span></nav>
+      <div className="catalog-title-row">
+        <div><h1>Yêu thích</h1><p className="catalog-lead">Những viên đá bạn đã lưu. Sản phẩm ngừng bán sẽ tạm ẩn khỏi danh sách.</p></div>
+        <button className="btn btn-outline catalog-reset" disabled={loading || busy} onClick={refresh}>Tải lại danh sách</button>
+      </div>
+      {error && <p className="notice notice-error" role="alert">{error}</p>}
+      {loading ? <p role="status">Đang tải yêu thích...</p> : !error && items?.length === 0 ?
+        <div className="empty-state"><p>Bạn chưa có sản phẩm yêu thích.</p><Link className="btn btn-outline" to="/shop">Khám phá đá quý</Link></div> :
+        items && <div className="catalog-grid">{items.map(product =>
+          <ProductCard key={product.id} product={{ ...product, type: product.categoryName }} />)}</div>}
+    </div>
   );
 }
 

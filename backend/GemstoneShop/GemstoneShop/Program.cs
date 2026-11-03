@@ -1,7 +1,19 @@
 using GemstoneShop.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
+using GemstoneShop.Services;
+using Microsoft.OpenApi.Models;
+using GemstoneShop.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException("Configure Jwt:Key with at least 32 UTF-8 bytes using User Secrets or Jwt__Key.");
+}
 builder.Services.AddDbContext<GemstoneShopContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
@@ -13,16 +25,109 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:2222")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
+
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<OrderEvents>();
+// Consultation booking + staff chat. TimeProvider is injectable so tests can pin "now" (store time = Asia/Ho_Chi_Minh).
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<StoreClock>();
+builder.Services.AddScoped<ConsultationScheduler>();
+builder.Services.AddScoped<AppointmentEvents>();
+builder.Services.AddScoped<ChatEvents>();
+builder.Services.AddScoped<ChatService>();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập JWT token"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwt = builder.Configuration.GetSection("Jwt");
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwt["Key"]!)
+            )
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var path = context.HttpContext.Request.Path;
+                if (path.StartsWithSegments("/hubs/orders") || path.StartsWithSegments("/hubs/chat"))
+                {
+                    var token = context.Request.Query["access_token"];
+                    if (!string.IsNullOrEmpty(token)) context.Token = token;
+                }
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = async context =>
+            {
+                if (!int.TryParse(context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+                {
+                    context.Fail("Invalid user identifier.");
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<GemstoneShopContext>();
+                var isActive = await db.Users.AnyAsync(
+                    user => user.Id == userId && user.IsActive,
+                    context.HttpContext.RequestAborted);
+
+                if (!isActive)
+                    context.Fail("Account is missing or inactive.");
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Repair Products.SearchName for rows written outside the API (SQL inserts/renames). Logs and continues on failure.
+await SearchNameBackfill.RunAsync(app.Services, app.Logger);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -33,10 +138,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles(); // phục vụ ảnh trong wwwroot/uploads/... qua URL /uploads/...
+
 app.UseCors("FrontendPolicy");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<OrdersHub>("/hubs/orders", options => options.CloseOnAuthenticationExpiration = true);
+app.MapHub<ChatHub>("/hubs/chat", options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();

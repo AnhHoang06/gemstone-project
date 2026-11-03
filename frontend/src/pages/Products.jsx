@@ -1,105 +1,108 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import ProductCard from "../components/ProductCard";
-import { products } from "../data/products";
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import ProductSearchBar from '../components/ProductSearchBar';
+import CategoryTree from '../components/CategoryTree';
+import ProductCard from '../components/ProductCard';
+import CatalogSkeleton from '../components/CatalogSkeleton';
+import CatalogPagination from '../components/CatalogPagination';
+import useApiData from '../hooks/useApiData';
+import useCategoryTree from '../hooks/useCategoryTree';
+import { flattenCategories } from '../utils/categoryTree';
 
-const categories = [...new Set(products.map((product) => product.type))];
+const validPage = value => (/^\d+$/.test(value || '') && Number(value) >= 1 ? Number(value) : null);
 
-function Products() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("featured");
-  const selectedCategory = searchParams.get("category") || "all";
-
-  const visibleProducts = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    const filtered = products.filter((product) => {
-      const matchesCategory =
-        selectedCategory === "all" || product.type.toLowerCase() === selectedCategory.toLowerCase();
-      const matchesSearch = product.name.toLowerCase().includes(normalizedSearch);
-
-      return matchesCategory && matchesSearch;
-    });
-
-    return [...filtered].sort((a, b) => {
-      if (sortBy === "price-asc") return a.price - b.price;
-      if (sortBy === "price-desc") return b.price - a.price;
-      if (sortBy === "name-asc") return a.name.localeCompare(b.name);
-      return 0;
-    });
-  }, [searchTerm, selectedCategory, sortBy]);
-
-  const handleCategoryChange = (event) => {
-    const nextCategory = event.target.value;
-
-    if (nextCategory === "all") {
-      setSearchParams({});
-      return;
-    }
-
-    setSearchParams({ category: nextCategory });
+export default function Products() {
+  const [params, setParams] = useSearchParams();
+  const tree = useCategoryTree();
+  const flat = flattenCategories(tree.data || []);
+  const rawCategory = params.get('category') || '';
+  const isId = /^\d+$/.test(rawCategory);
+  const named = !isId && rawCategory ? flat.filter(c => c.name.toLowerCase() === rawCategory.toLowerCase()).sort((a, b) => a.depth - b.depth || a.id - b.id)[0] : null;
+  const namedId = named?.id;
+  const categoryId = isId ? rawCategory : namedId ? String(namedId) : '';
+  const selected = flat.find(c => String(c.id) === categoryId);
+  // A category id/name that is missing from the public tree is unknown or hidden.
+  const missingCategory = Boolean(rawCategory && tree.data && !selected);
+  const waitingForName = Boolean(rawCategory && !isId && !tree.data && !tree.error);
+  const urlPage = validPage(params.get('page'));
+  useEffect(() => {
+    if (!namedId) return;
+    const next = new URLSearchParams(params); next.set('category', String(namedId)); setParams(next, { replace: true });
+  }, [namedId, params, setParams]);
+  const query = new URLSearchParams();
+  for (const key of ['q', 'minPrice', 'maxPrice', 'sort']) if (params.get(key)) query.set(key, params.get(key));
+  if (urlPage && urlPage > 1) query.set('page', String(urlPage));
+  if (categoryId) query.set('categoryId', categoryId);
+  const catalog = useApiData(missingCategory || waitingForName ? null : `/products/catalog?${query}`);
+  // A legacy ?category=<name> URL waits for the tree; show it as loading, not as "0 sản phẩm".
+  const loading = catalog.loading || waitingForName;
+  const actualPage = catalog.data?.page;
+  // Keep the URL honest: the API clamps out-of-range pages, and invalid page values are dropped.
+  useEffect(() => {
+    const raw = params.get('page');
+    let wanted;
+    if (actualPage != null) wanted = actualPage; // the response belongs to the current URL
+    else if (raw !== null && !urlPage) wanted = 1;
+    else return;
+    const canonical = wanted > 1 ? String(wanted) : null;
+    if (raw === canonical) return;
+    const next = new URLSearchParams(params);
+    if (canonical) next.set('page', canonical); else next.delete('page');
+    setParams(next, { replace: true });
+  }, [actualPage, urlPage, params, setParams]);
+  const grid = useRef(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const change = updates => {
+    const next = new URLSearchParams(params);
+    for (const [key, value] of Object.entries(updates)) { if (value) next.set(key, value); else next.delete(key); }
+    if (!('page' in updates)) next.delete('page');
+    setParams(next);
   };
-
-  return (
-    <>
-      <section className="page-title">
-        <div className="container">
-          <h1>Bộ sưu tập đá quý</h1>
-          <p>Ruby, Sapphire, Emerald, Diamond và các dòng đá màu hiếm cho trang sức cao cấp và bộ sưu tập cá nhân.</p>
-        </div>
-      </section>
-      <section className="products-section">
-        <div className="container">
-          <div className="shop-controls" aria-label="Bộ lọc sản phẩm">
-            <label>
-              Tìm kiếm
-              <input
-                type="search"
-                placeholder="Nhập tên sản phẩm"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-            </label>
-            <label>
-              Loại đá
-              <select value={selectedCategory} onChange={handleCategoryChange} aria-label="Lọc theo loại đá">
-                <option value="all">Tất cả loại đá</option>
-                {categories.map((category) => (
-                  <option value={category.toLowerCase()} key={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Sắp xếp
-              <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sắp xếp sản phẩm">
-                <option value="featured">Mặc định</option>
-                <option value="price-asc">Giá thấp đến cao</option>
-                <option value="price-desc">Giá cao đến thấp</option>
-                <option value="name-asc">Tên A-Z</option>
-              </select>
-            </label>
+  const showAll = () => { setParams({}); setFiltersOpen(false); };
+  const filters = <><h2>Danh mục đá quý</h2>{tree.error && <p role="alert">{tree.error}</p>}{tree.loading && <p role="status">Đang tải danh mục…</p>}
+    <Link className="tree-all" to="/shop" aria-current={!rawCategory ? 'page' : undefined} onClick={() => setFiltersOpen(false)}>Tất cả đá quý</Link>
+    <CategoryTree nodes={tree.data || []} selected={categoryId} onSelect={id => change({ category: String(id) })} onNavigate={() => setFiltersOpen(false)} />
+    <h2>Bộ lọc</h2><PriceFilter key={`${params.get('minPrice')}:${params.get('maxPrice')}`} min={params.get('minPrice') || ''} max={params.get('maxPrice') || ''} onApply={change} />
+    <button className="btn btn-outline catalog-reset" onClick={showAll}>Xóa bộ lọc</button></>;
+  return <div className="store-container catalog-page"><ProductSearchBar />
+    <nav className="catalog-breadcrumb" aria-label="Đường dẫn"><Link to="/">Trang chủ</Link><span aria-hidden="true">/</span><Link to="/shop" aria-current={!selected && !missingCategory ? 'page' : undefined}>Thế giới đá quý</Link>
+      {selected?.path.map(c => <span key={c.id}><span aria-hidden="true">/ </span><Link to={`/shop?category=${c.id}`} aria-current={c.id === selected.id ? 'page' : undefined}>{c.name}</Link></span>)}</nav>
+    <h1>{missingCategory ? 'Danh mục không tồn tại' : selected?.name || (rawCategory && !tree.data ? 'Thế giới đá quý' : 'Tất cả đá quý')}</h1>
+    <button className="btn catalog-filter-trigger" onClick={() => setFiltersOpen(true)}>Danh mục &amp; bộ lọc</button>
+    <div className="shop-catalog-layout"><aside className="catalog-sidebar">{filters}</aside>
+      <section ref={grid} className="catalog-results" aria-label="Sản phẩm">
+        {missingCategory ? <div className="empty-state catalog-missing">
+          <p>Danh mục này không tồn tại hoặc đang tạm ẩn.</p>
+          <button className="btn btn-outline" onClick={showAll}>Xem tất cả đá quý</button>
+        </div> : <>
+          <div className="catalog-toolbar">
+            <p>{loading ? 'Đang tải…' : catalog.error ? 'Chưa tải được sản phẩm' : `${catalog.data?.total ?? 0} sản phẩm`}</p>
+            <label>Sắp xếp <select value={params.get('sort') || 'newest'} onChange={e => change({ sort: e.target.value })}>
+              <option value="newest">Mới nhất</option><option value="price-asc">Giá tăng dần</option><option value="price-desc">Giá giảm dần</option><option value="name-asc">Tên A–Z</option></select></label>
           </div>
-          <div className="shop-toolbar">
-            <span>{visibleProducts.length} sản phẩm phù hợp</span>
-          </div>
-          {visibleProducts.length > 0 ? (
-            <div className="product-grid">
-              {visibleProducts.map((product) => (
-                <ProductCard product={product} key={product.id} />
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              Không tìm thấy sản phẩm phù hợp với bộ lọc hiện tại.
-            </div>
-          )}
-        </div>
+          {loading ? <CatalogSkeleton /> : catalog.error ? <p className="notice notice-error" role="alert">{catalog.error}</p> : catalog.data?.items.length ? <>
+            <div className="catalog-grid">{catalog.data.items.map(p => <ProductCard key={p.id} product={p} />)}</div>
+            <CatalogPagination page={catalog.data.page} totalPages={catalog.data.totalPages} onChange={page => { change({ page: page > 1 ? String(page) : '' }); grid.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }} />
+          </> : <div className="empty-state"><p>Không có sản phẩm phù hợp.</p><button className="btn btn-outline" onClick={showAll}>Xem tất cả đá quý</button></div>}
+        </>}
       </section>
-    </>
-  );
+    </div>
+    {filtersOpen && <FilterDrawer onClose={() => setFiltersOpen(false)}>{filters}</FilterDrawer>}
+  </div>;
 }
-
-export default Products;
+function PriceFilter({ min, max, onApply }) {
+  const [low, setLow] = useState(min), [high, setHigh] = useState(max), [error, setError] = useState('');
+  return <form className="catalog-price" noValidate onSubmit={event => {
+    event.preventDefault();
+    if ([low, high].some(v => v !== '' && (!Number.isFinite(Number(v)) || Number(v) < 0)) || (low !== '' && high !== '' && Number(low) > Number(high))) { setError('Khoảng giá không hợp lệ.'); return; }
+    setError(''); onApply({ minPrice: low, maxPrice: high });
+  }}><label>Giá từ (đ)<input inputMode="numeric" type="number" min="0" value={low} onChange={e => setLow(e.target.value)} /></label>
+    <label>Đến (đ)<input inputMode="numeric" type="number" min="0" value={high} onChange={e => setHigh(e.target.value)} /></label>
+    {error && <p role="alert">{error}</p>}<button className="btn btn-gold">Lọc giá</button></form>;
+}
+function FilterDrawer({ onClose, children }) {
+  const ref = useRef(null);
+  useEffect(() => { const dialog = ref.current; const previous = document.activeElement; dialog.showModal(); return () => { dialog.close(); if (previous?.isConnected) previous.focus(); }; }, []);
+  return <dialog className="catalog-filter-drawer" ref={ref} aria-label="Danh mục và bộ lọc" onCancel={e => { e.preventDefault(); onClose(); }}>
+    <button className="drawer-close" aria-label="Đóng bộ lọc" onClick={onClose}>×</button>{children}</dialog>;
+}

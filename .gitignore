@@ -14,6 +14,15 @@ appsettings.Development.local.json
 
 # IDE
 .vscode/
+*.csproj.user
 
 # Logs
 *.log
+
+# Ảnh sản phẩm upload lúc chạy (không commit, giữ cấu trúc thư mục bằng .gitkeep)
+backend/GemstoneShop/GemstoneShop/wwwroot/uploads/products/*
+!backend/GemstoneShop/GemstoneShop/wwwroot/uploads/products/.gitkeep
+
+# Private review uploads
+**/App_Data/review-images/
+**/dist/

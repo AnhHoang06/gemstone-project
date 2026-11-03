@@ -1,0 +1,53 @@
+.order-secondary { color: #6b7068; font-size: .8125rem; margin: .5rem 0 0; }
+.order-label { display: block; color: #6b7068; font-size: .75rem; margin-bottom: .375rem; }
+.order-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.order-filters { display: flex; flex-wrap: wrap; gap: .5rem; }
+.order-filters button { min-height: 40px; padding: .5rem .75rem; border: 1px solid #d9d4c8; border-radius: 2px; background: #fffdf7; color: #34453c; font-size: .8125rem; }
+.order-filters button[aria-pressed="true"] { background: #234d40; border-color: #234d40; color: #fffdf7; }
+.order-filters button:focus-visible, .order-card:focus-visible { outline: 2px solid #957335; outline-offset: 3px; }
+.order-badge { display: inline-flex; align-items: center; padding: .3rem .6rem; border: 1px solid transparent; border-radius: 2px; font-size: .75rem; font-weight: 600; white-space: nowrap; background: #efeee8; color: #4c514b; }
+.order-badge--Pending { background: #f7eed9; color: #795615; border-color: #e5d2a4; }
+.order-badge--Confirmed { background: #eaf0f5; color: #36576f; border-color: #ccdbe5; }
+.order-badge--Shipping { background: #e4f1ed; color: #246456; border-color: #c4ded5; }
+.order-badge--Completed { background: #e9f1e4; color: #365d31; border-color: #ccdcbf; }
+.order-badge--Cancelled { background: #f6eae7; color: #853e34; border-color: #e7cac4; }
+.order-cards { display: grid; gap: 1rem; }
+.order-card { padding: 1.25rem; background: #fffdf7; border: 1px solid #ded8cb; border-radius: 2px; cursor: pointer; transition: border-color 150ms, box-shadow 150ms; }
+.order-card:hover { border-color: #b8ad91; box-shadow: 0 3px 12px #243e3210; }
+.order-card-heading, .order-card-body { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.order-number { font-size: 1.125rem; font-weight: 600; color: #234d40; }
+.order-card-body { padding: 1rem 0; }
+.order-card-body p { margin: 0; overflow-wrap: anywhere; }
+.order-card-total { text-align: right; flex-shrink: 0; }
+.order-card-total strong, .order-detail-summary strong { display: block; font-size: 1.25rem; color: #234d40; font-variant-numeric: tabular-nums; }
+.order-card-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; border-top: 1px solid #e8e2d6; padding-top: 1rem; }
+.order-card-actions .btn { min-height: 40px; font-size: .8125rem; }
+.order-card-actions .order-cancel { color: #853e34; }
+.order-admin-table { min-width: 720px; }
+.order-admin-table td { vertical-align: middle; }
+.order-money { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.order-detail-summary { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.25rem; margin-top: 1.5rem; border: 1px solid #ded8cb; background: #fffdf7; }
+.order-detail-summary > div:last-child { text-align: right; }
+.order-progress { display: grid; grid-template-columns: repeat(4, 1fr); list-style: none; margin: 1.5rem 0; padding: 0; gap: .75rem; }
+.order-progress li { border-top: 2px solid #ded8cb; padding-top: .75rem; color: #6b7068; font-size: .8125rem; }
+.order-progress li.is-reached { border-color: #386451; color: #234d40; }
+.order-progress li[aria-current] { font-weight: 600; }
+.order-progress li > span { margin-right: .5rem; }
+.order-progress small { display: block; margin-top: .25rem; }
+.order-shipping, .order-items { margin-top: 1.5rem; }
+.order-shipping { padding: 1.25rem; background: #fffdf7; border: 1px solid #ded8cb; overflow-wrap: anywhere; }
+.order-shipping h2, .order-items h2 { font-size: 1.125rem; margin-bottom: 1rem; }
+.order-shipping p { margin: .375rem 0 0; }
+.order-items-table { min-width: 560px; }
+.order-items-table :is(th, td):not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.order-detail-total { display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #ded8cb; }
+.order-detail-actions { justify-content: flex-end; }
+@media (max-width: 600px) {
+  .order-card { padding: 1rem; }
+  .order-card-body, .order-detail-summary { flex-direction: column; }
+  .order-card-total, .order-detail-summary > div:last-child { text-align: left; }
+  .order-card-actions { justify-content: flex-start; }
+  .order-progress { grid-template-columns: repeat(2, 1fr); }
+  .order-card-actions .btn, .order-filters button, .order-detail-actions .btn { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .order-card { transition: none; } }

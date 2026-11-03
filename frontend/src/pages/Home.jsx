@@ -1,78 +1,35 @@
-import { Link } from "react-router-dom";
-import ProductCard from "../components/ProductCard";
-import { featuredProducts, products } from "../data/products";
-import heroImage from "../assets/gem-hero.svg";
+import { TopRatedProducts } from '../engagement/ProductShelves';
+import { Fragment } from 'react';
+import { Link } from 'react-router-dom';
+import ProductCarousel from '../components/ProductCarousel';
+import CatalogSkeleton from '../components/CatalogSkeleton';
+import useApiData from '../hooks/useApiData';
+import useCategoryTree from '../hooks/useCategoryTree';
+import heroImage from '../assets/gem-hero.svg';
 
-const categories = ["Ruby", "Sapphire", "Emerald", "Diamond", "Amethyst", "Aquamarine", "Topaz", "Garnet"];
-
-function Home() {
-  return (
-    <>
-      <section className="hero-section">
-        <div className="container hero-grid">
-          <div className="hero-content">
-            <p className="eyebrow">Nhà tuyển chọn đá quý cao cấp</p>
-            <h1>Gem Aurelia</h1>
-            <p>
-              Ruby, Sapphire, Emerald và Diamond được tuyển chọn theo độ rực, xuất xứ và vẻ đẹp bền vững.
-            </p>
-            <div className="hero-badges">
-              <span>GIA / GRS / SSEF</span>
-              <span>Tư vấn 1:1</span>
-              <span>Giao hàng bảo hiểm</span>
-            </div>
-            <Link className="btn btn-gold btn-lg" to="/shop">
-              Khám phá bộ sưu tập
-            </Link>
-          </div>
-          <div className="hero-artwork" aria-hidden="true">
-            <img src={heroImage} alt="" />
-          </div>
-        </div>
-      </section>
-
-      <section className="category-band">
-        <div className="container">
-          <div className="section-title">
-            <p className="eyebrow">Danh mục tuyển chọn</p>
-            <h2>Đá quý theo màu sắc và cá tính</h2>
-          </div>
-          <div className="category-grid">
-            {categories.map((category) => (
-              <Link className="category-tile" to={`/shop?category=${category.toLowerCase()}`} key={category}>
-                {category}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="products-section">
-        <div className="container">
-          <div className="section-title section-title--split">
-            <div>
-              <p className="eyebrow">Tuyển chọn nổi bật</p>
-              <h2>Đá quý nổi bật</h2>
-            </div>
-            <Link to="/shop">Xem tất cả {products.length} sản phẩm</Link>
-          </div>
-          <div className="product-grid">
-            {featuredProducts.map((product) => (
-              <ProductCard product={product} key={product.id} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="service-strip">
-        <div className="container">
-          <div>Được gemologist rà soát</div>
-          <div>Ưu tiên chứng nhận độc lập</div>
-          <div>Giao hàng bảo hiểm toàn cầu</div>
-        </div>
-      </section>
-    </>
-  );
+export default function Home() {
+  const catalog = useApiData('/products/catalog?sort=newest&pageSize=12');
+  const categories = useCategoryTree();
+  return <div className="catalog-home"><div className="store-container">
+    <section className="collection-hero" aria-labelledby="home-hero-title">
+      <div className="collection-hero__copy">
+        <h1 id="home-hero-title"><span>Khám phá tuyệt tác</span> <span>thiên nhiên:</span> <span>Sapphire &amp; Kim cương hiếm</span></h1>
+        <Link className="collection-cta" to="/shop">Xem chi tiết sản phẩm</Link>
+      </div>
+      <img src={heroImage} alt="" aria-hidden="true" />
+    </section>
+    <section className="home-categories" aria-labelledby="home-categories-title"><h2 id="home-categories-title">Danh mục đá quý</h2>
+      {categories.loading ? <p role="status">Đang tải danh mục…</p> : categories.error && !categories.data ? <p role="alert">{categories.error}</p> :
+        <div className="category-ribbon"><nav className="category-ribbon__scroller" aria-label="Danh mục đá quý">
+          {categories.data?.map((c, index) => <Fragment key={c.id}>{index > 0 && <span className="category-ribbon__sep" aria-hidden="true">|</span>}
+            <Link to={`/shop?category=${c.id}`}>{c.name}</Link></Fragment>)}
+          {!categories.data?.length && <span>Chưa có danh mục.</span>}
+        </nav></div>}
+    </section>
+    <section className="home-featured" aria-labelledby="home-featured-title">
+      <div className="catalog-heading"><h2 id="home-featured-title">Sản phẩm nổi bật</h2><Link to="/shop">Xem tất cả</Link></div>
+      {catalog.loading ? <CatalogSkeleton compact /> : catalog.error ? <p role="alert">{catalog.error}</p> : !catalog.data?.items.length ? <p className="empty-state">Chưa có sản phẩm.</p> : <ProductCarousel products={catalog.data.items} />}
+    </section>
+    <TopRatedProducts />
+  </div></div>;
 }
-
-export default Home;
