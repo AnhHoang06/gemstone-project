@@ -5,6 +5,9 @@
 -- Existing rows are never updated/deleted. Existing complete seed is a no-op; partial seeds fail closed.
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+IF EXISTS(SELECT 1 FROM Products WHERE Description LIKE N'Catalog14[_]v2:%')
+ THROW 51200,'Catalog14 supersedes this legacy seed. Use Catalog14 documentation; do not recreate old demo products.',1;
+
 IF N'$(DashboardSeedConsent)' <> N'LOCAL_SAMPLE_DATA'
     THROW 51100, 'Explicit LOCAL_SAMPLE_DATA consent is required.', 1;
 DECLARE @AsOf date = TRY_CONVERT(date, N'$(SeedAsOf)', 23);

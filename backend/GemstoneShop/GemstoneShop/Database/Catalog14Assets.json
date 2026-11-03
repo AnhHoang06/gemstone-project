@@ -1,0 +1,76 @@
+{
+  "source": "User-provided anh-da-quy-da-doi-ten.zip",
+  "conversion": "diamond-pear.avif converted to diamond-pear.webp (quality 90); same image, no crop or generated replacement. ASP.NET static files returned 404 for AVIF.",
+  "assets": [
+    {
+      "filename": "amethyst-cushion.jpg",
+      "bytes": 8176,
+      "sha256": "ee0edda62c499773ccf72c38fa079860a04ad457ea8581b2ddaf03e704a71f7f"
+    },
+    {
+      "filename": "amethyst-pear.jpg",
+      "bytes": 22865,
+      "sha256": "15853e4450ffa7bda651cd53ec3714e9055781b69d92399dad51936001485490"
+    },
+    {
+      "filename": "amethyst-trillion.jpg",
+      "bytes": 12827,
+      "sha256": "5d7f621f6dc6f1c6806d14dfc7a6904631d6124b411cfb15b577fe37794de402"
+    },
+    {
+      "filename": "diamond-pear.webp",
+      "bytes": 141188,
+      "sha256": "3b6de5b22c1ac5053e69deeb14eb306db933fadbef8b7eba8a52d394dffabfd2"
+    },
+    {
+      "filename": "diamond-round.webp",
+      "bytes": 61262,
+      "sha256": "36c125aa684ec6bc223e057958f60d1f7100d67865c6598f6464e450b145a3fd"
+    },
+    {
+      "filename": "emerald-octagon.jpg",
+      "bytes": 17123,
+      "sha256": "552195af14a441e5f0aad4652442b9deb79fc062a74b1473f328ab044c9542c1"
+    },
+    {
+      "filename": "emerald-oval.jpg",
+      "bytes": 21008,
+      "sha256": "68ed9caab577c38c603eca0764d730003ed178d9a375ae56e7bc59273103705b"
+    },
+    {
+      "filename": "emerald-round.jpg",
+      "bytes": 21173,
+      "sha256": "a201b1fb304150ac9ce78a17f4626d285e25227137cd48a9dea51443c056ad82"
+    },
+    {
+      "filename": "ruby-cushion.jpg",
+      "bytes": 22247,
+      "sha256": "04751d476091742e4939016e6aa205ca2b0427fee04f5e98bbc4f8de92591d02"
+    },
+    {
+      "filename": "ruby-oval.jpg",
+      "bytes": 199030,
+      "sha256": "f997eb065693cf4d9e2c1d47757535bb1b75e0f5ca5a43d7d16fde13ba650081"
+    },
+    {
+      "filename": "ruby-pear.jpg",
+      "bytes": 9440,
+      "sha256": "9b02c217c260f8825b882dd964eb562c8bd772163e7e36951ff06feecf872729"
+    },
+    {
+      "filename": "sapphire-heart.jpg",
+      "bytes": 4371,
+      "sha256": "9cfaa20fb2f5cf59bbfa1d711a4906bee45263eb82d66fe7a1c0ef365faf79b0"
+    },
+    {
+      "filename": "sapphire-marquise.jpg",
+      "bytes": 13169,
+      "sha256": "56eebf35c07531d76171f683b2b469691f69ce187ba25cf2d7af75760eb99edb"
+    },
+    {
+      "filename": "sapphire-oval.jpg",
+      "bytes": 18202,
+      "sha256": "0a3257ebc545e4c3e1e83296fad3f7df841959eb65441886709b92daccaff67a"
+    }
+  ]
+}

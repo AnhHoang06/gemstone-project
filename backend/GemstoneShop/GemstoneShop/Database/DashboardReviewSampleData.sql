@@ -3,6 +3,9 @@
 -- sqlcmd -v ReviewSeedConsent=LOCAL_SAMPLE_DATA
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+IF EXISTS(SELECT 1 FROM Products WHERE Description LIKE N'Catalog14[_]v2:%')
+ THROW 51200,'Catalog14 supersedes this legacy seed. Use Catalog14 documentation; do not recreate old demo products.',1;
+
 IF N'$(ReviewSeedConsent)' <> N'LOCAL_SAMPLE_DATA' THROW 51000,'Local sample consent required',1;
 BEGIN TRY
 BEGIN TRANSACTION;
