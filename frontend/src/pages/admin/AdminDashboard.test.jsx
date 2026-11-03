@@ -7,6 +7,7 @@ vi.mock('chart.js', () => ({
   LineController: {}, DoughnutController: {}, LineElement: {}, PointElement: {}, ArcElement: {}, CategoryScale: {}, LinearScale: {}, Tooltip: {},
 }));
 import AdminDashboard from './AdminDashboard';
+import { CommerceContext } from '../../commerce/context';
 const options = {
   categories: [{ id: 1, name: 'Ruby', isActive: true }, { id: 2, name: 'Sapphire', isActive: true }, { id: 3, name: 'Star', parentId: 1, isActive: false }],
   products: [{ id: 11, name: 'Ruby Star', categoryId: 3, parentId: 1, isActive: false }, { id: 12, name: 'Ruby Oval', categoryId: 1, isActive: true }, { id: 21, name: 'Sapphire Blue', categoryId: 2, isActive: true }],
@@ -97,4 +98,25 @@ it('ignores stale previous-filter responses', async () => {
   fireEvent.change(screen.getByLabelText('Thời gian'), { target: { value: '7d' } }); await ready();
   await act(async () => resolveOld({ data: { ...response(''), summary: { revenue: 999, unitsSold: 999, completedOrders: 999, averageOrderValue: 999 } } }));
   expect(screen.queryByText('999')).toBeNull();
+});
+
+it('realtime revision updates actual chart configurations and preserves metric/filter selections', async () => {
+  const view=render(<CommerceContext.Provider value={{revision:0}}><AdminDashboard /></CommerceContext.Provider>);
+  await ready();
+  fireEvent.change(screen.getByLabelText('Danh mục'),{target:{value:'1'}});
+  fireEvent.change(screen.getByLabelText('Sản phẩm'),{target:{value:'11'}});
+  await ready();
+  fireEvent.change(screen.getByLabelText('Chỉ số'),{target:{value:'orders'}});
+  fireEvent.change(screen.getByLabelText('Cơ cấu'),{target:{value:'unitsSold'}});
+  api.get.mockImplementation(path => Promise.resolve({data:path.includes('/options') ? options : {
+    ...response(path), summary:{revenue:4000000,unitsSold:4,completedOrders:2,averageOrderValue:2000000},
+    trend:[{startDate:'2001-01-01',endDate:'2001-01-01',revenue:4000000,unitsSold:4,orders:2}],
+    breakdown:[{id:11,name:'Ruby Star',type:'product',revenue:4000000,unitsSold:4}],
+  }}));
+  view.rerender(<CommerceContext.Provider value={{revision:1}}><AdminDashboard /></CommerceContext.Provider>);
+  await waitFor(()=>expect(charts.filter(c=>c.type==='line').at(-1).data.datasets[0].data).toEqual([2]));
+  expect(charts.filter(c=>c.type==='doughnut').at(-1).data.datasets[0].data).toEqual([4]);
+  expect(screen.getByLabelText('Chỉ số').value).toBe('orders'); expect(screen.getByLabelText('Cơ cấu').value).toBe('unitsSold');
+  expect(screen.getByLabelText('Thời gian').value).toBe('30d'); expect(screen.getByLabelText('Sản phẩm').value).toBe('11');
+  expect(api.get).toHaveBeenLastCalledWith('/dashboard/analytics?range=30d&refresh=0&categoryId=1&productId=11');
 });

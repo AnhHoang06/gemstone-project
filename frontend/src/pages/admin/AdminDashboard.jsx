@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import useApiData from '../../hooks/useApiData';
+import useDashboardAnalytics from '../../hooks/useDashboardAnalytics';
 import '../../styles/admin.css';
 import '../../styles/dashboard.css';
 
@@ -35,7 +36,7 @@ export default function AdminDashboard() {
   if (range === 'custom') { query.set('start', start); query.set('end', end); }
   if (category) query.set('categoryId', category);
   if (product) query.set('productId', product);
-  const analytics = useApiData('/dashboard/analytics?' + query);
+  const analytics = useDashboardAnalytics('/dashboard/analytics?' + query);
   const categories = options.data?.categories || [];
   const products = options.data?.products || [];
   const categoryName = item => {
@@ -73,8 +74,8 @@ export default function AdminDashboard() {
         <label>Đến ngày (UTC)<input type="date" value={end} min={start} max={today()} onChange={e => setEnd(e.target.value)} /></label></>}
     </section>
     <p className="analytics-rule">Chỉ tính đơn hoàn tất <strong>và đã thanh toán</strong> (Completed + Paid), theo ngày tạo đơn UTC. Giá trị dùng giá bán đã lưu trên đơn.</p>
-    {error ? <div className="admin-error" role="alert">{error}<button className="btn btn-outline" onClick={() => setAttempt(v => v + 1)}>Thử lại</button></div> :
-      analytics.loading || options.loading ? <div className="analytics-loading" role="status">Đang tải báo cáo bán hàng…</div> : data && <>
+    {error && <div className="admin-error" role="alert">{error}<button className="btn btn-outline" onClick={() => setAttempt(v => v + 1)}>Thử lại</button></div>}
+    {analytics.loading || options.loading ? <div className="analytics-loading" role="status">Đang tải báo cáo bán hàng…</div> : data && <>
         <dl className="dashboard-metrics">
           {[
             ['Doanh thu', money(data.summary.revenue), 'Giá trị các dòng hàng phù hợp', 'revenue'],
