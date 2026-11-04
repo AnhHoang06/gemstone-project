@@ -58,7 +58,7 @@ npm ci
 npm run lint
 npm test
 npm run build
-$env:VITE_API_BASE_URL = 'http://localhost:5113/api'
+$env:VITE_API_BASE_URL = 'http://localhost:5113'
 npm run dev -- --port 2222
 ```
 

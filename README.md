@@ -46,11 +46,15 @@ dotnet run --project backend/GemstoneShop/GemstoneShop/GemstoneShop.csproj --no-
 ```powershell
 cd frontend
 npm ci
-$env:VITE_API_BASE_URL = 'http://localhost:5113/api'
+$env:VITE_API_BASE_URL = 'http://localhost:5113'
 npm run dev -- --host localhost --port 2222 --strictPort
 ```
 
-Open **http://localhost:2222** (not 127.0.0.1; CORS allows localhost). The default frontend API URL remains `https://localhost:1111/api` if no override is supplied; the existing HTTPS launch profile can also be used with a trusted development certificate.
+Open **http://localhost:2222** (not 127.0.0.1; CORS allows localhost). `VITE_API_BASE_URL` is the backend origin (without `/api`; a trailing `/api` is still accepted). It is read in one place, `frontend/src/config/apiBase.js`, and used for API calls, SignalR hubs and backend-hosted images. In `npm run dev` it falls back to `http://localhost:5113`; a production build never falls back to localhost. For the Visual Studio HTTPS profile put `VITE_API_BASE_URL=https://localhost:1111` in `frontend/.env.local` (git-ignored) and trust the development certificate.
+
+### Deploying the frontend to Vercel
+
+Set the Vercel project's root directory to `frontend` and add the Environment Variable `VITE_API_BASE_URL` with the backend origin (for example `https://<your-backend-host>`), then redeploy; Vite reads it at build time. `frontend/vercel.json` rewrites every route to `index.html` so refreshing a React Router URL works. The backend must allow the Vercel origin in CORS. Do not commit a `.env` with production values.
 
 ## Features and deployment notes
 

@@ -80,11 +80,11 @@ Terminal 2:
 ```powershell
 cd frontend
 npm ci
-$env:VITE_API_BASE_URL = 'http://localhost:5113/api'
+$env:VITE_API_BASE_URL = 'http://localhost:5113'
 npm run dev
 ```
 
-`npm ci` installs the exact versions from `package-lock.json` (`npm install` also works). Instead of setting the variable in every terminal you can create `frontend/.env.local` containing `VITE_API_BASE_URL=http://localhost:5113/api`.
+`npm ci` installs the exact versions from `package-lock.json` (`npm install` also works). Instead of setting the variable in every terminal you can create `frontend/.env.local` containing `VITE_API_BASE_URL=http://localhost:5113`. The value is the backend address without `/api`; if it is not set, `npm run dev` uses `http://localhost:5113`.
 
 ## E. Local URLs
 
@@ -95,7 +95,7 @@ npm run dev
 | Swagger (Development only) | http://localhost:5113/swagger |
 | Product images | served by the API, e.g. http://localhost:5113/catalog-gems/ruby-oval.jpg |
 
-The Visual Studio `https` launch profile (https://localhost:1111) also works; then the frontend needs no `VITE_API_BASE_URL` because that is its default, but the development HTTPS certificate must be trusted (`dotnet dev-certs https --trust`).
+The Visual Studio `https` launch profile (https://localhost:1111) also works; then set `VITE_API_BASE_URL=https://localhost:1111` (for example in `frontend/.env.local`) and trust the development HTTPS certificate (`dotnet dev-certs https --trust`).
 
 ## F. Demo accounts
 

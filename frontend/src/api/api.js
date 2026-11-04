@@ -1,11 +1,8 @@
 import axios from "axios";
 import { getSessionToken, logout } from "../auth/session";
+import { API_BASE_URL, API_ORIGIN } from "../config/apiBase";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://localhost:1111/api";
-
-// Gốc backend, bỏ đuôi /api để ghép URL ảnh
-export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+export { API_ORIGIN };
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -36,10 +33,11 @@ api.interceptors.response.use(
   },
 );
 
-// Ảnh backend trả về dạng "/uploads/products/..."
+// Ảnh backend trả về dạng "/uploads/products/..." hoặc "/catalog-gems/..."
 export function resolveImageUrl(url) {
   if (!url) return null;
-  return url.startsWith("http") ? url : `${API_ORIGIN}${url}`;
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+  return `${API_ORIGIN}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
 export default api;

@@ -7,7 +7,7 @@ The Person 3 implementation is already part of develop. For the current bug-fix 
 1. Configure the existing database connection and a fresh JWT key as documented in `backend/GemstoneShop/GemstoneShop/AUTH-DEVELOPMENT.md`. Do not reuse any key from Git history.
 2. Run `backend/GemstoneShop/GemstoneShop/Database/Person3.sql` against that database. This additive, repeatable Database First script creates **CheckoutReceipts** and adds missing status names only. Existing tables/data/mappings are not recreated. The additional EF mapping is isolated in `Data/CommerceContext.cs`; preserve it when scaffolding.
 3. Backend: `dotnet run --project backend/GemstoneShop/GemstoneShop/GemstoneShop.csproj --launch-profile https`.
-4. Frontend: `cd frontend`, `npm install`, `npm run dev -- --port 2222`. Default API is `https://localhost:1111/api`; override using `VITE_API_BASE_URL` when necessary. Trust the local ASP.NET development certificate. The hub uses the same API origin, `/hubs/orders`. CORS permits the existing frontend origin `http://localhost:2222`, with credentials for SignalR negotiation.
+4. Frontend: `cd frontend`, `npm install`, `npm run dev -- --port 2222`. Set the backend origin with `VITE_API_BASE_URL` (default in dev: `http://localhost:5113`). Trust the local ASP.NET development certificate. The hub uses the same API origin, `/hubs/orders`. CORS permits the existing frontend origin `http://localhost:2222`, with credentials for SignalR negotiation.
 
 ## APIs and guarantees
 
