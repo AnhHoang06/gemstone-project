@@ -46,7 +46,8 @@ If a `GemstoneShop` database already exists and you still need it, restore under
 
    ```powershell
    cd backend/GemstoneShop/GemstoneShop
-   dotnet user-secrets set "Jwt:Key" "$([Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48)))"
+   $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+   dotnet user-secrets set "Jwt:Key" ([Convert]::ToBase64String($b))
    cd ../../..
    ```
 
