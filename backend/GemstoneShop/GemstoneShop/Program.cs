@@ -18,12 +18,15 @@ builder.Services.AddDbContext<GemstoneShopContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+// Frontend origins come from Cors:AllowedOrigins (env: Cors__AllowedOrigins__0, __1, ...).
+// Explicit origins are required because SignalR negotiation sends credentials.
+var allowedOrigins = CorsOrigins.Read(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:2222")
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

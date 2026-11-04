@@ -54,7 +54,20 @@ Open **http://localhost:2222** (not 127.0.0.1; CORS allows localhost). `VITE_API
 
 ### Deploying the frontend to Vercel
 
-Set the Vercel project's root directory to `frontend` and add the Environment Variable `VITE_API_BASE_URL` with the backend origin (for example `https://<your-backend-host>`), then redeploy; Vite reads it at build time. `frontend/vercel.json` rewrites every route to `index.html` so refreshing a React Router URL works. The backend must allow the Vercel origin in CORS. Do not commit a `.env` with production values.
+Set the Vercel project's root directory to `frontend` and add the Environment Variable `VITE_API_BASE_URL` with the backend origin (for example `https://<your-backend-host>`), then redeploy; Vite reads it at build time. `frontend/vercel.json` rewrites every route to `index.html` so refreshing a React Router URL works. The backend must allow the Vercel origin in CORS (see below). Do not commit a `.env` with production values.
+
+### Backend CORS (allowed frontend origins)
+
+Browser origins allowed to call the API and the SignalR hubs (`/hubs/orders`, `/hubs/chat`) come from `Cors:AllowedOrigins` (a list). `appsettings.json` contains only `http://localhost:2222` for local development; if the list is empty the API also falls back to that origin. The policy allows any header (including `Authorization: Bearer`), any method and credentials, which SignalR negotiation needs, so every entry must be an exact origin: `scheme://host[:port]`, no path, no trailing slash, no `*`. An invalid entry stops the API at startup with a clear message.
+
+On the host, override the list with standard environment variables (index 0, 1, … replace the entries from `appsettings.json`):
+
+```
+Cors__AllowedOrigins__0=https://<your-project>.vercel.app
+Cors__AllowedOrigins__1=https://<your-custom-domain>        (optional)
+```
+
+For SmarterASP, add them next to the connection string in the published `web.config` (`<environmentVariable name="Cors__AllowedOrigins__0" value="https://<your-project>.vercel.app" />`) and restart the site. Vercel preview URLs are different origins; add each one you need explicitly.
 
 ## Features and deployment notes
 
@@ -96,6 +109,7 @@ node tests/contact.integration.mjs
 node tests/order-shipping.integration.mjs
 node tests/analytics.integration.mjs
 node tests/dashboard-realtime.integration.mjs
+node tests/cors.integration.mjs
 ```
 
-Integration suites require the local backend and matching local database. Defaults: API `http://localhost:5113`, SQL server `.\SQLEXPRESS`, DB `GemstoneShop`, Windows authentication. Override `PERSON3_API_URL`, `PERSON3_SQL_SERVER`, `PERSON3_SQL_DATABASE` together as needed. `tests/catalog.integration.mjs` reads `CATALOG_API_URL`, `CATALOG_SQL_SERVER`, `CATALOG_SQL_DATABASE` (falling back to the `PERSON3_*` values); its restart check starts a second API from the built `bin/Debug/<tfm>/GemstoneShop.dll` on `CATALOG_RESTART_URL` (default `http://localhost:5115`, override the DLL with `CATALOG_BACKEND_DLL`) and needs the same connection string and `Jwt:Key` in the environment — set `CATALOG_SKIP_RESTART=1` to skip it. `tests/consultation.integration.mjs` and `tests/chat.integration.mjs` read `CONSULT_*` / `CHAT_*` (`API_URL`, `SQL_SERVER`, `SQL_DATABASE`, falling back to `PERSON3_*`); the consultation suite temporarily replaces the weekly hours with a fixed test schedule and restores the original rows afterwards, so do not run it while someone is configuring hours. `tests/reviews.integration.mjs` uses `PERSON3_API_URL` (default `http://localhost:5121`). `tests/contact.integration.mjs` reads `CONTACT_API_URL`, `CONTACT_SQL_SERVER`, `CONTACT_SQL_DATABASE`. Use only a disposable/development database: tests create and clean temporary users/products/orders and exercise failure triggers and schema constraints. They are not production health checks.
+Integration suites require the local backend and matching local database. Defaults: API `http://localhost:5113`, SQL server `.\SQLEXPRESS`, DB `GemstoneShop`, Windows authentication. Override `PERSON3_API_URL`, `PERSON3_SQL_SERVER`, `PERSON3_SQL_DATABASE` together as needed. `tests/catalog.integration.mjs` reads `CATALOG_API_URL`, `CATALOG_SQL_SERVER`, `CATALOG_SQL_DATABASE` (falling back to the `PERSON3_*` values); its restart check starts a second API from the built `bin/Debug/<tfm>/GemstoneShop.dll` on `CATALOG_RESTART_URL` (default `http://localhost:5115`, override the DLL with `CATALOG_BACKEND_DLL`) and needs the same connection string and `Jwt:Key` in the environment — set `CATALOG_SKIP_RESTART=1` to skip it. `tests/consultation.integration.mjs` and `tests/chat.integration.mjs` read `CONSULT_*` / `CHAT_*` (`API_URL`, `SQL_SERVER`, `SQL_DATABASE`, falling back to `PERSON3_*`); the consultation suite temporarily replaces the weekly hours with a fixed test schedule and restores the original rows afterwards, so do not run it while someone is configuring hours. `tests/reviews.integration.mjs` uses `PERSON3_API_URL` (default `http://localhost:5121`). `tests/contact.integration.mjs` reads `CONTACT_API_URL`, `CONTACT_SQL_SERVER`, `CONTACT_SQL_DATABASE`. `tests/cors.integration.mjs` is read-only and reads `CORS_API_URL`, `CORS_ALLOWED` and `CORS_DENIED` (comma-separated origins; defaults `http://localhost:2222` / a non-allowed example origin). Use only a disposable/development database: tests create and clean temporary users/products/orders and exercise failure triggers and schema constraints. They are not production health checks.
