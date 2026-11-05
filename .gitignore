@@ -16,6 +16,10 @@ appsettings.Development.local.json
 .vscode/
 *.csproj.user
 
+# Publish output, archived/local publish profiles (may contain hosts or credentials)
+/artifacts/
+*.pubxml.user
+
 # Logs
 *.log
 

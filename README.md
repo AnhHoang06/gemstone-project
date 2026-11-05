@@ -67,7 +67,7 @@ Cors__AllowedOrigins__0=https://<your-project>.vercel.app
 Cors__AllowedOrigins__1=https://<your-custom-domain>        (optional)
 ```
 
-For SmarterASP, add them next to the connection string in the published `web.config` (`<environmentVariable name="Cors__AllowedOrigins__0" value="https://<your-project>.vercel.app" />`) and restart the site. Vercel preview URLs are different origins; add each one you need explicitly.
+On the hosting provider (currently Somee) they go next to the connection string in the published `web.config` (`<environmentVariable name="Cors__AllowedOrigins__0" value="https://<your-project>.vercel.app" />`); `deploy/somee/Prepare-SomeeUpload.ps1` writes them for you. See [deploy/somee/README.md](deploy/somee/README.md). Vercel preview URLs are different origins; add each one you need explicitly.
 
 ## Features and deployment notes
 
